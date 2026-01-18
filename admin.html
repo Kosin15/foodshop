@@ -7,10 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
-
-    <div id="login-section" class="flex items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-80 text-center">
+<body class="bg-gray-100 pb-20 md:pb-0"> <div id="login-section" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-80 text-center mx-4">
             <i class="fas fa-user-shield text-5xl text-orange-500 mb-4"></i>
             <h2 class="text-2xl font-bold mb-6">ผู้ดูแลระบบ</h2>
             <input type="password" id="admin-pin" placeholder="ใส่รหัสผ่าน (1234)" class="w-full p-3 border rounded-xl mb-4 text-center">
@@ -18,28 +16,38 @@
         </div>
     </div>
 
-    <div id="admin-panel" class="hidden min-h-screen flex">
-        <div class="w-64 bg-slate-800 text-white p-6 hidden md:block">
-            <h2 class="text-xl font-bold mb-8">Admin Menu</h2>
-            <nav class="space-y-4">
-                <button onclick="showContent('orders')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition"><i class="fas fa-shopping-cart mr-2"></i>รายการสั่งซื้อ</button>
-                <button onclick="showContent('sales')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition"><i class="fas fa-chart-line mr-2"></i>สรุปยอดขาย</button>
-                <button onclick="showContent('stock')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition"><i class="fas fa-box mr-2"></i>สต๊อกสินค้า</button>
-                <button onclick="showContent('edit')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition"><i class="fas fa-edit mr-2"></i>แก้ไขข้อมูล</button>
-                <button onclick="location.reload()" class="w-full text-left p-3 rounded-lg hover:bg-red-600 transition mt-10"><i class="fas fa-sign-out-alt mr-2"></i>ออกระบบ</button>
+    <div id="admin-panel" class="hidden min-h-screen flex flex-col md:flex-row">
+        
+        <div class="w-64 bg-slate-800 text-white p-6 hidden md:block min-h-screen">
+            <h2 class="text-xl font-bold mb-8 border-b border-slate-700 pb-4">Admin Menu</h2>
+            <nav class="space-y-2">
+                <button onclick="showContent('orders')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition flex items-center"><i class="fas fa-shopping-cart w-6"></i> รายการสั่งซื้อ</button>
+                <button onclick="showContent('sales')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition flex items-center"><i class="fas fa-chart-line w-6"></i> สรุปยอดขาย</button>
+                <button onclick="showContent('stock')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition flex items-center"><i class="fas fa-box w-6"></i> สต๊อกสินค้า</button>
+                <button onclick="showContent('edit')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition flex items-center"><i class="fas fa-edit w-6"></i> แก้ไขข้อมูล</button>
+                <button onclick="location.reload()" class="w-full text-left p-3 rounded-lg hover:bg-red-600 transition mt-10 flex items-center"><i class="fas fa-sign-out-alt w-6"></i> ออกระบบ</button>
             </nav>
         </div>
 
-        <div class="flex-1 p-8">
-            <h1 id="content-title" class="text-3xl font-bold text-gray-800 mb-8">ยินดีต้อนรับ</h1>
-            <div id="content-body" class="bg-white p-6 rounded-2xl shadow-sm">
+        <div class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-800 text-white flex justify-around p-2 z-50 shadow-lg">
+            <button onclick="showContent('orders')" class="flex flex-col items-center p-2 text-[10px]"><i class="fas fa-shopping-cart text-lg mb-1"></i>สั่งซื้อ</button>
+            <button onclick="showContent('sales')" class="flex flex-col items-center p-2 text-[10px]"><i class="fas fa-chart-line text-lg mb-1"></i>ยอดขาย</button>
+            <button onclick="showContent('stock')" class="flex flex-col items-center p-2 text-[10px]"><i class="fas fa-box text-lg mb-1"></i>สต๊อก</button>
+            <button onclick="showContent('edit')" class="flex flex-col items-center p-2 text-[10px]"><i class="fas fa-edit text-lg mb-1"></i>แก้ไข</button>
+            <button onclick="location.reload()" class="flex flex-col items-center p-2 text-[10px] text-red-400"><i class="fas fa-sign-out-alt text-lg mb-1"></i>ออก</button>
+        </div>
+
+        <div class="flex-1 p-4 md:p-8">
+            <h1 id="content-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">ยินดีต้อนรับ</h1>
+            <div id="content-body" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm overflow-x-auto">
                 เลือกเมนูเพื่อดูรายละเอียด
             </div>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXLg3-3p6LXpg4OJaPpk7BA6BK5Rl8rA1bIPrPp-QGqCGwNlckonFRCZNRrHnzW6YpIw/exec'; 
+        // แก้ไข URL เป็น Web App ตัวล่าสุดของคุณ
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwng0cF9m6SkKV4-uMW9gvrB_Kzj4rcqeJip4qPvNSXL_7ihh-PPhtAsvlc_mUG75Bn/exec'; 
         const PIN = "1234";
 
         function checkLogin() {
@@ -55,32 +63,39 @@
         async function showContent(type) {
             const body = document.getElementById('content-body');
             const title = document.getElementById('content-title');
-            body.innerHTML = "กำลังโหลดข้อมูล...";
+            body.innerHTML = '<div class="flex flex-col items-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-orange-500 mb-2"></i> กำลังโหลดข้อมูล...</div>';
 
-            if (type === 'orders') {
-                title.innerText = "📋 รายการสั่งซื้อ";
-                const res = await fetch(`${SCRIPT_URL}?action=getOrders`);
-                const data = await res.json();
-                renderOrders(data);
-            } else if (type === 'sales') {
-                title.innerText = "💰 สรุปยอดขาย";
-                body.innerHTML = "<p class='text-xl'>ยอดขายวันนี้: ฿1,250</p>"; // ตัวอย่าง
-            } else if (type === 'stock') {
-                title.innerText = "📦 สต๊อกสินค้า";
-                const res = await fetch(`${SCRIPT_URL}?action=getMenu`);
-                const data = await res.json();
-                renderStock(data);
+            try {
+                if (type === 'orders') {
+                    title.innerText = "📋 รายการสั่งซื้อ";
+                    const res = await fetch(`${SCRIPT_URL}?action=getOrders`);
+                    const data = await res.json();
+                    renderOrders(data);
+                } else if (type === 'sales') {
+                    title.innerText = "💰 สรุปยอดขาย";
+                    body.innerHTML = "<p class='text-lg'>ยอดขายวันนี้ (ตัวอย่าง): <span class='text-green-600 font-bold'>฿1,250</span></p>";
+                } else if (type === 'stock') {
+                    title.innerText = "📦 สต๊อกสินค้า";
+                    const res = await fetch(`${SCRIPT_URL}?action=getMenu`);
+                    const data = await res.json();
+                    renderStock(data);
+                } else if (type === 'edit') {
+                    title.innerText = "⚙️ แก้ไขข้อมูล";
+                    body.innerHTML = "<p>ระบบกำลังพัฒนาส่วนแก้ไขข้อมูล...</p>";
+                }
+            } catch (err) {
+                body.innerHTML = `<p class="text-red-500">เกิดข้อผิดพลาดในการดึงข้อมูล: ${err}</p>`;
             }
         }
 
         function renderOrders(data) {
-            let html = `<table class="w-full text-left border-collapse">
-                <tr class="bg-gray-100 font-bold border-b">
+            let html = `<table class="w-full text-left border-collapse min-w-[500px]">
+                <tr class="bg-gray-100 font-bold border-b text-sm">
                     <th class="p-3">เวลา</th><th class="p-3">โต๊ะ</th><th class="p-3">รายการ</th><th class="p-3">ยอดรวม</th>
                 </tr>`;
             data.slice(1).reverse().forEach(row => {
-                html += `<tr class="border-b">
-                    <td class="p-3 text-xs">${new Date(row[0]).toLocaleString()}</td>
+                html += `<tr class="border-b text-sm hover:bg-gray-50 transition">
+                    <td class="p-3 text-gray-500">${new Date(row[0]).toLocaleString('th-TH')}</td>
                     <td class="p-3 font-bold">${row[1]}</td>
                     <td class="p-3">${row[2]}</td>
                     <td class="p-3 text-orange-600 font-bold">฿${row[3]}</td>
@@ -91,12 +106,15 @@
         }
 
         function renderStock(data) {
-            let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+            let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">`;
             data.forEach(item => {
-                html += `<div class="flex items-center p-3 border rounded-xl">
-                    <img src="${item.imgUrl}" class="w-12 h-12 rounded object-cover mr-4">
-                    <div class="flex-1"><p class="font-bold">${item.name}</p><p class="text-xs">฿${item.price}</p></div>
-                    <button class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs">แก้ไข</button>
+                html += `<div class="flex items-center p-3 border rounded-xl bg-gray-50">
+                    <img src="${item.imgUrl}" class="w-14 h-14 rounded-lg object-cover mr-4 shadow-sm" onerror="this.src='https://placehold.co/100x100?text=No+Img'">
+                    <div class="flex-1">
+                        <p class="font-bold text-gray-800 text-sm">${item.name}</p>
+                        <p class="text-xs text-orange-600 font-bold">฿${item.price}</p>
+                        <p class="text-[10px] text-gray-400 capitalize">${item.type}</p>
+                    </div>
                 </div>`;
             });
             html += `</div>`;
