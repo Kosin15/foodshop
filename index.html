@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เมนูอาหาร - Quick Order</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .loading-shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-2xl text-white font-bold hidden transition-all duration-300">
+        <span id="toast-msg"></span>
+    </div>
+
+    <nav class="bg-orange-500 text-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center">
+        <h1 id="table-display" class="text-lg font-bold">🥘 ร้านอาหาร (โต๊ะ --)</h1>
+        <button onclick="loadMenu()" class="text-white hover:rotate-180 transition duration-500">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </nav>
+
+    <div class="p-4 max-w-md mx-auto pb-32">
+        <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4 text-orange-600 flex items-center border-b pb-2">
+                <i class="fas fa-utensils mr-2"></i> รายการอาหาร
+            </h2>
+            <div id="food-list" class="space-y-4">
+                <div class="loading-shimmer h-24 rounded-xl w-full"></div>
+            </div>
+        </div>
+
+        <div class="mb-8 border-t pt-6">
+            <h2 class="text-xl font-bold mb-4 text-blue-600 flex items-center border-b pb-2">
+                <i class="fas fa-glass-whiskey mr-2"></i> รายการเครื่องดื่ม
+            </h2>
+            <div id="drink-list" class="space-y-4">
+                <div class="loading-shimmer h-24 rounded-xl w-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cart-bar" class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] hidden z-50">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="relative mr-4">
+                    <i class="fas fa-shopping-basket text-orange-500 text-2xl"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">0</span>
+                </div>
+                <p class="text-xl font-bold text-orange-600">฿<span id="cart-total">0</span></p>
+            </div>
+            <button onclick="sendOrder(event)" class="bg-green-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition shadow-lg">
+                สั่งเลย!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXLg3-3p6LXpg4OJaPpk7BA6BK5Rl8rA1bIPrPp-QGqCGwNlckonFRCZNRrHnzW6YpIw/exec'; 
+        let cart = [];
+        let total = 0;
+
+        // ดึงเลขโต๊ะจาก URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableNumber = urlParams.get('table') || "00";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('table-display').innerText = `🥘 ร้านอาหาร (โต๊ะ ${tableNumber})`;
+            loadMenu();
+        });
+
+        // 1. ฟังก์ชันโหลดเมนูจาก Google Sheets
+        async function loadMenu() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const menuItems = await response.json();
+                
+                const foodList = document.getElementById('food-list');
+                const drinkList = document.getElementById('drink-list');
+                foodList.innerHTML = '';
+                drinkList.innerHTML = '';
+
+                menuItems.forEach(item => {
+                    const card = `
+                        <div class="bg-white rounded-xl shadow-sm overflow-hidden flex border border-gray-100 transition hover:shadow-md">
+                            <img src="${item.imgUrl}" class="w-24 h-24 object-cover" onerror="this.src='https://placehold.co/200x200?text=No+Image'">
+                            <div class="p-3 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <h3 class="font-bold text-gray-800 text-sm leading-tight">${item.name}</h3>
+                                    <p class="text-gray-400 text-[10px] mt-1 line-clamp-1">${item.description || ''}</p>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold ${item.type === 'food' ? 'text-orange-600' : 'text-blue-600'}">฿${item.price}</span>
+                                    <button onclick="addToCart('${item.name}', ${item.price})" class="${item.type === 'food' ? 'bg-orange-500' : 'bg-blue-500'} text-white px-3 py-1 rounded-full text-xs active:scale-90 transition">+ เพิ่ม</button>
+                                </div>
+                            </div>
+                        </div>`;
+                    
+                    if(item.type === 'food') foodList.innerHTML += card;
+                    else drinkList.innerHTML += card;
+                });
+            } catch (e) {
+                showToast("โหลดเมนูไม่สำเร็จ กรุณาเช็คอินเทอร์เน็ต", false);
+            }
+        }
+
+        // 2. ระบบตะกร้า
+        function addToCart(name, price) {
+            cart.push({name, price});
+            total += price;
+            updateUI();
+        }
+
+        function updateUI() {
+            const bar = document.getElementById('cart-bar');
+            bar.classList.toggle('hidden', cart.length === 0);
+            document.getElementById('cart-count').innerText = cart.length;
+            document.getElementById('cart-total').innerText = total;
+        }
+
+        function showToast(msg, isSuccess) {
+            const toast = document.getElementById('toast');
+            toast.className = `fixed top-5 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-2xl text-white font-bold transition-all duration-300 ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`;
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // 3. ส่งออเดอร์
+        async function sendOrder(event) {
+            const btn = event.target;
+            btn.innerText = "กำลังส่ง...";
+            btn.disabled = true;
+
+            const orderData = {
+                table: tableNumber,
+                menuItems: cart.map(item => item.name).join(", "),
+                totalPrice: total
+            };
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(orderData) });
+                const result = await response.json();
+                if (result.result === "success") {
+                    showToast("✅ สั่งสำเร็จแล้ว!", true);
+                    cart = []; total = 0; updateUI();
+                }
+            } catch (e) {
+                showToast("❌ ส่งข้อมูลไม่สำเร็จ", false);
+            } finally {
+                btn.innerText = "สั่งเลย!";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
