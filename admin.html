@@ -3,52 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Stock Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .loading-overlay { background: rgba(255,255,255,0.8); display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; flex-direction: column; }
+        /* Animation สำหรับปุ่มรีเฟรช */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .spin-anim { animation: spin 1s linear infinite; }
+    </style>
 </head>
-<body class="bg-gray-100 pb-20 md:pb-0"> <div id="login-section" class="flex items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-80 text-center mx-4">
+<body class="bg-gray-100 pb-24 md:pb-0">
+
+    <div id="loading" class="loading-overlay">
+        <i class="fas fa-spinner fa-spin text-4xl text-orange-500 mb-2"></i>
+        <p class="font-bold">กำลังประมวลผล...</p>
+    </div>
+
+    <div id="login-section" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-80 text-center mx-4 border-t-4 border-orange-500">
             <i class="fas fa-user-shield text-5xl text-orange-500 mb-4"></i>
             <h2 class="text-2xl font-bold mb-6">ผู้ดูแลระบบ</h2>
-            <input type="password" id="admin-pin" placeholder="ใส่รหัสผ่าน (1234)" class="w-full p-3 border rounded-xl mb-4 text-center">
-            <button onclick="checkLogin()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600">เข้าสู่ระบบ</button>
+            <input type="password" id="admin-pin" placeholder="ใส่รหัสผ่าน (1234)" class="w-full p-3 border rounded-xl mb-4 text-center focus:ring-2 focus:ring-orange-500 outline-none">
+            <button onclick="checkLogin()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 transition shadow-lg">เข้าสู่ระบบ</button>
         </div>
     </div>
 
     <div id="admin-panel" class="hidden min-h-screen flex flex-col md:flex-row">
         
-        <div class="w-64 bg-slate-800 text-white p-6 hidden md:block min-h-screen">
-            <h2 class="text-xl font-bold mb-8 border-b border-slate-700 pb-4">Admin Menu</h2>
+        <div class="w-64 bg-slate-800 text-white p-6 hidden md:block min-h-screen sticky top-0 h-screen overflow-y-auto">
+            <h2 class="text-xl font-bold mb-8 border-b border-slate-700 pb-4 flex items-center"><i class="fas fa-tools mr-2 text-orange-400"></i> Admin Menu</h2>
             <nav class="space-y-2">
                 <button onclick="showContent('orders')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition flex items-center"><i class="fas fa-shopping-cart w-6"></i> รายการสั่งซื้อ</button>
-                <button onclick="showContent('sales')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition flex items-center"><i class="fas fa-chart-line w-6"></i> สรุปยอดขาย</button>
                 <button onclick="showContent('stock')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition flex items-center"><i class="fas fa-box w-6"></i> สต๊อกสินค้า</button>
-                <button onclick="showContent('edit')" class="w-full text-left p-3 rounded-lg hover:bg-slate-700 transition flex items-center"><i class="fas fa-edit w-6"></i> แก้ไขข้อมูล</button>
-                <button onclick="location.reload()" class="w-full text-left p-3 rounded-lg hover:bg-red-600 transition mt-10 flex items-center"><i class="fas fa-sign-out-alt w-6"></i> ออกระบบ</button>
+                <div class="pt-10 mt-10 border-t border-slate-700">
+                    <a href="index.html" class="block w-full text-left p-3 rounded-lg hover:bg-blue-600 transition flex items-center text-blue-200"><i class="fas fa-store w-6"></i> ไปหน้าร้าน</a>
+                    <button onclick="location.reload()" class="w-full text-left p-3 rounded-lg hover:bg-red-600 transition flex items-center text-red-200 mt-2"><i class="fas fa-sign-out-alt w-6"></i> ออกระบบ</button>
+                </div>
             </nav>
         </div>
 
-        <div class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-800 text-white flex justify-around p-2 z-50 shadow-lg">
+        <div class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-800 text-white flex justify-around p-2 z-50 shadow-lg border-t border-slate-700">
             <button onclick="showContent('orders')" class="flex flex-col items-center p-2 text-[10px]"><i class="fas fa-shopping-cart text-lg mb-1"></i>สั่งซื้อ</button>
-            <button onclick="showContent('sales')" class="flex flex-col items-center p-2 text-[10px]"><i class="fas fa-chart-line text-lg mb-1"></i>ยอดขาย</button>
             <button onclick="showContent('stock')" class="flex flex-col items-center p-2 text-[10px]"><i class="fas fa-box text-lg mb-1"></i>สต๊อก</button>
-            <button onclick="showContent('edit')" class="flex flex-col items-center p-2 text-[10px]"><i class="fas fa-edit text-lg mb-1"></i>แก้ไข</button>
+            <a href="index.html" class="flex flex-col items-center p-2 text-[10px] text-blue-300"><i class="fas fa-store text-lg mb-1"></i>หน้าร้าน</a>
             <button onclick="location.reload()" class="flex flex-col items-center p-2 text-[10px] text-red-400"><i class="fas fa-sign-out-alt text-lg mb-1"></i>ออก</button>
         </div>
 
-        <div class="flex-1 p-4 md:p-8">
-            <h1 id="content-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">ยินดีต้อนรับ</h1>
-            <div id="content-body" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm overflow-x-auto">
-                เลือกเมนูเพื่อดูรายละเอียด
+        <div class="flex-1 p-4 md:p-8 overflow-y-auto">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                <h1 id="content-title" class="text-2xl md:text-3xl font-bold text-gray-800">ยินดีต้อนรับ</h1>
+                
+                <div class="flex items-center gap-2 self-end md:self-auto">
+                    <button onclick="refreshData()" class="bg-white text-gray-600 p-2.5 rounded-xl shadow-sm border hover:text-orange-500 hover:border-orange-500 transition" title="รีเฟรชข้อมูล">
+                        <i id="refresh-icon" class="fas fa-sync-alt"></i>
+                    </button>
+
+                    <a href="index.html" class="hidden md:inline-flex bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-blue-600 shadow-sm items-center transition">
+                        <i class="fas fa-store mr-2"></i> ไปหน้าร้าน
+                    </a>
+
+                    <div id="action-buttons" class="hidden">
+                        <button onclick="openForm()" class="bg-green-500 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-green-600 shadow-sm flex items-center transition">
+                            <i class="fas fa-plus mr-2"></i> <span class="hidden sm:inline">เพิ่มสินค้า</span><span class="sm:hidden">เพิ่ม</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="product-form" class="hidden bg-orange-50 p-6 rounded-2xl border border-orange-200 mb-8 shadow-inner animate-fade-in">
+                <h3 id="form-title" class="text-lg font-bold mb-4 text-orange-700">➕ เพิ่มข้อมูลสินค้า</h3>
+                <input type="hidden" id="edit-old-name">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-500 px-2">ชื่อสินค้า</label>
+                        <input type="text" id="menu-name" class="w-full p-3 border rounded-xl outline-none focus:border-orange-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-500 px-2">ราคา (บาท)</label>
+                        <input type="number" id="menu-price" class="w-full p-3 border rounded-xl outline-none focus:border-orange-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-500 px-2">หมวดหมู่</label>
+                        <select id="menu-type" class="w-full p-3 border rounded-xl bg-white outline-none">
+                            <option value="food">อาหาร (food)</option>
+                            <option value="drink">เครื่องดื่ม (drink)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-500 px-2">อัปโหลดรูปภาพ</label>
+                        <input type="file" id="menu-image" accept="image/*" class="w-full p-2 border rounded-xl bg-white text-xs">
+                    </div>
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="text-xs font-bold text-gray-500 px-2">คำอธิบาย</label>
+                        <textarea id="menu-desc" class="w-full p-3 border rounded-xl outline-none focus:border-orange-500" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="mt-6 flex space-x-3">
+                    <button onclick="saveProduct()" class="bg-orange-500 text-white px-8 py-3 rounded-xl font-bold flex-1 shadow-lg hover:bg-orange-600 transition">บันทึกข้อมูล</button>
+                    <button onclick="closeForm()" class="bg-gray-400 text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-500 transition">ยกเลิก</button>
+                </div>
+            </div>
+
+            <div id="content-body" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm min-h-[400px]">
+                <div class="flex flex-col items-center justify-center h-full text-gray-400 py-20">
+                    <i class="fas fa-inbox text-6xl mb-4"></i>
+                    <p>เลือกเมนูเพื่อจัดการข้อมูล</p>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // แก้ไข URL เป็น Web App ตัวล่าสุดของคุณ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXLg3-3p6LXpg4OJaPpk7BA6BK5Rl8rA1bIPrPp-QGqCGwNlckonFRCZNRrHnzW6YpIw/exec'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPX7-03fHsRh63WwTdLEU-RzSRUPwBpCCFVKVKDMBpiRbz-2H7L_ytpEZA17TADcWPBw/exec'; 
         const PIN = "1234";
+        let currentTab = ''; // เก็บสถานะว่าอยู่หน้าไหน
 
         function checkLogin() {
             const pin = document.getElementById('admin-pin').value;
@@ -60,67 +129,185 @@
             }
         }
 
+        // ฟังก์ชันรีเฟรชข้อมูล
+        function refreshData() {
+            if (currentTab) {
+                const icon = document.getElementById('refresh-icon');
+                icon.classList.add('spin-anim'); // เริ่มหมุน
+                showContent(currentTab).then(() => {
+                    setTimeout(() => icon.classList.remove('spin-anim'), 500); // หยุดหมุน
+                });
+            } else {
+                alert("กรุณาเลือกเมนูก่อนรีเฟรช");
+            }
+        }
+
         async function showContent(type) {
+            currentTab = type; // จำค่าหน้าปัจจุบันไว้
             const body = document.getElementById('content-body');
             const title = document.getElementById('content-title');
-            body.innerHTML = '<div class="flex flex-col items-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-orange-500 mb-2"></i> กำลังโหลดข้อมูล...</div>';
-
+            const actionBtn = document.getElementById('action-buttons');
+            
+            closeForm();
+            body.innerHTML = '<div class="flex flex-col items-center py-20"><i class="fas fa-spinner fa-spin text-4xl text-orange-500 mb-4"></i> กำลังโหลด...</div>';
+            
             try {
                 if (type === 'orders') {
                     title.innerText = "📋 รายการสั่งซื้อ";
+                    actionBtn.classList.add('hidden');
                     const res = await fetch(`${SCRIPT_URL}?action=getOrders`);
                     const data = await res.json();
                     renderOrders(data);
-                } else if (type === 'sales') {
-                    title.innerText = "💰 สรุปยอดขาย";
-                    body.innerHTML = "<p class='text-lg'>ยอดขายวันนี้ (ตัวอย่าง): <span class='text-green-600 font-bold'>฿1,250</span></p>";
                 } else if (type === 'stock') {
-                    title.innerText = "📦 สต๊อกสินค้า";
+                    title.innerText = "📦 จัดการสต๊อกสินค้า";
+                    actionBtn.classList.remove('hidden');
                     const res = await fetch(`${SCRIPT_URL}?action=getMenu`);
                     const data = await res.json();
                     renderStock(data);
-                } else if (type === 'edit') {
-                    title.innerText = "⚙️ แก้ไขข้อมูล";
-                    body.innerHTML = "<p>ระบบกำลังพัฒนาส่วนแก้ไขข้อมูล...</p>";
                 }
             } catch (err) {
-                body.innerHTML = `<p class="text-red-500">เกิดข้อผิดพลาดในการดึงข้อมูล: ${err}</p>`;
+                body.innerHTML = `<div class="text-center text-red-500 py-10">โหลดข้อมูลไม่สำเร็จ<br>${err}</div>`;
             }
         }
 
         function renderOrders(data) {
-            let html = `<table class="w-full text-left border-collapse min-w-[500px]">
-                <tr class="bg-gray-100 font-bold border-b text-sm">
-                    <th class="p-3">เวลา</th><th class="p-3">โต๊ะ</th><th class="p-3">รายการ</th><th class="p-3">ยอดรวม</th>
+            let html = `<div class="overflow-x-auto"><table class="w-full text-left border-collapse min-w-[600px]">
+                <tr class="bg-gray-100 font-bold border-b text-sm text-gray-600">
+                    <th class="p-4 rounded-tl-xl">เวลา</th>
+                    <th class="p-4">โต๊ะ</th>
+                    <th class="p-4">รายการ</th>
+                    <th class="p-4 rounded-tr-xl text-right">ยอดรวม</th>
                 </tr>`;
-            data.slice(1).reverse().forEach(row => {
-                html += `<tr class="border-b text-sm hover:bg-gray-50 transition">
-                    <td class="p-3 text-gray-500">${new Date(row[0]).toLocaleString('th-TH')}</td>
-                    <td class="p-3 font-bold">${row[1]}</td>
-                    <td class="p-3">${row[2]}</td>
-                    <td class="p-3 text-orange-600 font-bold">฿${row[3]}</td>
-                </tr>`;
-            });
-            html += `</table>`;
+            
+            if(data.length <= 1) {
+                 html += `<tr><td colspan="4" class="p-10 text-center text-gray-400">ไม่มีรายการสั่งซื้อ</td></tr>`;
+            } else {
+                data.slice(1).reverse().forEach(row => {
+                    html += `<tr class="border-b text-sm hover:bg-orange-50 transition">
+                        <td class="p-4 text-gray-500 whitespace-nowrap">${new Date(row[0]).toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short'})}</td>
+                        <td class="p-4 font-bold text-lg text-orange-600">${row[1]}</td>
+                        <td class="p-4 text-gray-700">${row[2]}</td>
+                        <td class="p-4 text-orange-600 font-bold text-right text-lg">฿${row[3]}</td>
+                    </tr>`;
+                });
+            }
+            html += `</table></div>`;
             document.getElementById('content-body').innerHTML = html;
         }
 
         function renderStock(data) {
             let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">`;
             data.forEach(item => {
-                html += `<div class="flex items-center p-3 border rounded-xl bg-gray-50">
-                    <img src="${item.imgUrl}" class="w-14 h-14 rounded-lg object-cover mr-4 shadow-sm" onerror="this.src='https://placehold.co/100x100?text=No+Img'">
-                    <div class="flex-1">
-                        <p class="font-bold text-gray-800 text-sm">${item.name}</p>
-                        <p class="text-xs text-orange-600 font-bold">฿${item.price}</p>
-                        <p class="text-[10px] text-gray-400 capitalize">${item.type}</p>
+                html += `<div class="p-4 border rounded-2xl bg-white shadow-sm flex flex-col hover:shadow-md transition">
+                    <div class="flex items-start mb-4">
+                        <img src="${item.imgUrl}" class="w-20 h-20 rounded-xl object-cover mr-4 border bg-gray-100" onerror="this.src='https://placehold.co/150x150?text=No+Img'">
+                        <div class="flex-1 overflow-hidden">
+                            <p class="font-bold text-gray-800 text-lg truncate">${item.name}</p>
+                            <p class="text-orange-500 font-bold text-xl">฿${item.price}</p>
+                            <span class="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full capitalize border">${item.type}</span>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 mt-auto">
+                        <button onclick='editItem(${JSON.stringify(item)})' class="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-100 transition"><i class="fas fa-edit mr-1"></i> แก้ไข</button>
+                        <button onclick="deleteProduct('${item.name}')" class="flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition"><i class="fas fa-trash mr-1"></i> ลบ</button>
                     </div>
                 </div>`;
             });
             html += `</div>`;
             document.getElementById('content-body').innerHTML = html;
         }
+
+        function openForm() {
+            document.getElementById('product-form').classList.remove('hidden');
+            document.getElementById('form-title').innerText = "➕ เพิ่มข้อมูลสินค้า";
+            document.getElementById('edit-old-name').value = "";
+            document.getElementById('menu-name').value = "";
+            document.getElementById('menu-price').value = "";
+            document.getElementById('menu-desc').value = "";
+            document.getElementById('menu-image').value = ""; // Clear file input
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function editItem(item) {
+            document.getElementById('product-form').classList.remove('hidden');
+            document.getElementById('form-title').innerText = "⚙️ แก้ไขข้อมูล: " + item.name;
+            document.getElementById('edit-old-name').value = item.name;
+            document.getElementById('menu-name').value = item.name;
+            document.getElementById('menu-price').value = item.price;
+            document.getElementById('menu-type').value = item.type;
+            document.getElementById('menu-desc').value = item.description || "";
+            document.getElementById('menu-image').value = ""; // Clear file input
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closeForm() {
+            document.getElementById('product-form').classList.add('hidden');
+        }
+
+        async function saveProduct() {
+            const name = document.getElementById('menu-name').value;
+            const price = document.getElementById('menu-price').value;
+            const oldName = document.getElementById('edit-old-name').value;
+            const fileInput = document.getElementById('menu-image');
+
+            if (!name || !price) return alert("กรุณากรอกชื่อและราคา!");
+
+            document.getElementById('loading').style.display = 'flex';
+            
+            let imageBase64 = "";
+            if (fileInput.files.length > 0) {
+                imageBase64 = await toBase64(fileInput.files[0]);
+            }
+
+            const payload = {
+                action: oldName ? "updateItem" : "addItem",
+                oldName: oldName,
+                name: name,
+                price: price,
+                type: document.getElementById('menu-type').value,
+                description: document.getElementById('menu-desc').value,
+                imageFile: imageBase64
+            };
+
+            try {
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.result === "success") {
+                    alert("บันทึกข้อมูลเรียบร้อย!");
+                    showContent('stock');
+                }
+            } catch (err) {
+                alert("เกิดข้อผิดพลาด: " + err);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        async function deleteProduct(name) {
+            if (!confirm(`ยืนยันการลบรายการ: ${name}?`)) return;
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                const res = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "deleteItem", name: name }) 
+                });
+                alert("ลบสำเร็จ!");
+                showContent('stock');
+            } catch (err) {
+                alert("ลบไม่สำเร็จ: " + err);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
     </script>
 </body>
 </html>
-
