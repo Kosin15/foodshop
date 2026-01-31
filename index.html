@@ -23,7 +23,6 @@
         .animate-bounce-slow { animation: bounceSlow 3s infinite ease-in-out; }
         @keyframes bounceSlow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         
-        /* 🔥 ปุ่มลอย (Minimized Status) */
         #status-minimized { bottom: 100px; left: 20px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .scale-in { animation: scaleIn 0.3s ease-out forwards; }
         @keyframes scaleIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -33,8 +32,12 @@
 
     <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
 
-    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-xl text-white font-bold hidden transition-all duration-300">
-        <span id="toast-msg"></span>
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[100] pl-6 pr-12 py-4 rounded-2xl shadow-2xl text-white font-bold hidden transition-all duration-300 flex items-center gap-3 min-w-[280px]">
+        <span id="toast-icon"></span>
+        <span id="toast-msg" class="flex-1"></span>
+        <button onclick="closeToast()" class="absolute top-2 right-2 text-white/70 hover:text-white bg-white/20 hover:bg-white/40 rounded-full w-6 h-6 flex items-center justify-center transition">
+            <i class="fas fa-times text-xs"></i>
+        </button>
     </div>
 
     <div id="table-select-modal" class="fixed inset-0 bg-emerald-600/90 z-[999] flex items-center justify-center p-6 hidden backdrop-blur-md">
@@ -69,7 +72,7 @@
 
     <div id="order-status-bar" class="fixed bottom-24 left-0 right-0 z-40 hidden px-4 pointer-events-none">
         <div class="max-w-md mx-auto bg-white rounded-2xl shadow-[0_-5px_25px_rgba(0,0,0,0.08)] border-l-[10px] p-5 flex items-center justify-between transition-all duration-500 pointer-events-auto slide-up relative" id="status-card">
-            <button onclick="minimizeStatusBar()" class="absolute -top-2 -right-2 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-colors z-50">
+            <button onclick="minimizeStatusBar()" class="absolute -top-2 -right-2 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-colors z-50 pointer-events-auto">
                 <i class="fas fa-times text-xs"></i>
             </button>
             <div class="flex items-center">
@@ -197,6 +200,7 @@
         let completedCount = 0;
         let isStatusMinimized = false;
         let lastKnownRawStatus = "";
+        let isFirstLoad = true; // 🔥 ตัวแปรป้องกันการแจ้งเตือนตอนเข้าเว็บครั้งแรก
 
         const urlParams = new URLSearchParams(window.location.search);
         let tableNumber = urlParams.get('table');
@@ -214,7 +218,6 @@
             if (Notification.permission !== "granted") Notification.requestPermission();
         });
 
-        // 🔥 ฟังก์ชันยืนยันเลือกโต๊ะ
         function confirmTableSelection() {
             const inputElement = document.getElementById('input-table-num');
             const inputVal = parseInt(inputElement.value);
@@ -226,7 +229,6 @@
             window.location.href = window.location.pathname + '?table=' + inputVal;
         }
 
-        // --- Status Management ---
         function minimizeStatusBar() {
             isStatusMinimized = true;
             document.getElementById('order-status-bar').classList.add('hidden');
@@ -250,15 +252,23 @@
                     if(latestOrder) {
                         const currentStatusKey = latestOrder.status + latestOrder.estTime;
                         if (currentStatusKey !== lastKnownRawStatus) {
-                            restoreStatusBar();
+                            if (!isFirstLoad) restoreStatusBar(); // เด้งเตือนเฉพาะถ้าไม่ใช่การโหลดครั้งแรก
                             lastKnownRawStatus = currentStatusKey;
                         }
                         updateStatusBarUIContent(latestOrder.status, latestOrder.estTime);
                         updateMinimizedIcon(latestOrder.status);
                     }
+                    
                     const newCompletedCount = serverOrderStatuses.filter(o => o.status === 'completed').length;
-                    if (newCompletedCount > completedCount) playNotification();
-                    completedCount = newCompletedCount;
+                    
+                    // 🔥 Logic กันแจ้งเตือนรัว
+                    if (isFirstLoad) {
+                        completedCount = newCompletedCount;
+                        isFirstLoad = false;
+                    } else if (newCompletedCount > completedCount) {
+                        playNotification();
+                        completedCount = newCompletedCount;
+                    }
                 }
             } catch (e) {}
         }
@@ -287,7 +297,6 @@
             else if (status === 'completed') { icon.className = "fas fa-check-circle text-emerald-500 text-xl"; bubble.style.borderColor = "#10b981"; }
         }
 
-        // --- Menu & Cart Logic ---
         async function loadMenu() {
             try {
                 const response = await fetch(SCRIPT_URL + "?action=getMenu"); const menuItems = await response.json();
@@ -409,10 +418,26 @@
         function sendSystemNotification(title, body) {
             if (Notification.permission === "granted") { try { new Notification(title, { body: body, icon: "https://cdn-icons-png.flaticon.com/512/7541/7541673.png" }); } catch(e) {} }
         }
+        
+        // 🔥 แก้ไข Toast ให้มีปุ่มปิด X
         function showToast(msg, isSuccess) {
-            const toast = document.getElementById('toast'); toast.className = `fixed top-5 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-2xl text-white font-bold transition-all duration-300 ${isSuccess ? 'bg-emerald-500' : 'bg-red-500'}`;
-            document.getElementById('toast-msg').innerText = msg; toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('hidden'), 3000);
+            const toast = document.getElementById('toast'); 
+            const bgClass = isSuccess ? 'bg-emerald-500' : 'bg-red-500';
+            const icon = isSuccess ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-circle"></i>';
+            
+            toast.className = `fixed top-5 left-1/2 -translate-x-1/2 z-[100] pl-6 pr-12 py-4 rounded-2xl shadow-xl text-white font-bold transition-all duration-300 flex items-center gap-3 min-w-[280px] ${bgClass}`;
+            document.getElementById('toast-msg').innerHTML = msg;
+            document.getElementById('toast-icon').innerHTML = icon;
+            toast.classList.remove('hidden'); 
+            
+            // Auto hide
+            setTimeout(() => { if(!toast.classList.contains('hidden')) toast.classList.add('hidden'); }, 3000);
         }
+        
+        function closeToast() {
+            document.getElementById('toast').classList.add('hidden');
+        }
+
         async function downloadQRCode() {
             const imgSrc = document.getElementById('qr-image').src;
             try {
