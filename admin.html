@@ -8,7 +8,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .loading-overlay { background: rgba(255,255,255,0.8); display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; flex-direction: column; }
-        /* Animation สำหรับปุ่มรีเฟรช */
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .spin-anim { animation: spin 1s linear infinite; }
     </style>
@@ -20,12 +19,20 @@
         <p class="font-bold">กำลังประมวลผล...</p>
     </div>
 
-    <div id="login-section" class="flex items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-80 text-center mx-4 border-t-4 border-orange-500">
+    <div id="login-section" class="flex items-center justify-center min-h-screen relative">
+        <a href="index.html" class="absolute top-4 left-4 text-gray-500 hover:text-orange-500 md:hidden z-10 p-2">
+            <i class="fas fa-arrow-left text-xl"></i>
+        </a>
+
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-80 text-center mx-4 border-t-4 border-orange-500 relative z-0">
             <i class="fas fa-user-shield text-5xl text-orange-500 mb-4"></i>
             <h2 class="text-2xl font-bold mb-6">ผู้ดูแลระบบ</h2>
             <input type="password" id="admin-pin" placeholder="ใส่รหัสผ่าน (1234)" class="w-full p-3 border rounded-xl mb-4 text-center focus:ring-2 focus:ring-orange-500 outline-none">
-            <button onclick="checkLogin()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 transition shadow-lg">เข้าสู่ระบบ</button>
+            <button onclick="checkLogin()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 transition shadow-lg mb-4">เข้าสู่ระบบ</button>
+            
+            <a href="index.html" class="block text-gray-400 hover:text-orange-500 text-sm font-bold transition">
+                <i class="fas fa-store mr-1"></i> กลับไปหน้าสั่งอาหาร
+            </a>
         </div>
     </div>
 
@@ -117,7 +124,7 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPX7-03fHsRh63WwTdLEU-RzSRUPwBpCCFVKVKDMBpiRbz-2H7L_ytpEZA17TADcWPBw/exec'; 
         const PIN = "1234";
-        let currentTab = ''; // เก็บสถานะว่าอยู่หน้าไหน
+        let currentTab = '';
 
         function checkLogin() {
             const pin = document.getElementById('admin-pin').value;
@@ -129,13 +136,12 @@
             }
         }
 
-        // ฟังก์ชันรีเฟรชข้อมูล
         function refreshData() {
             if (currentTab) {
                 const icon = document.getElementById('refresh-icon');
-                icon.classList.add('spin-anim'); // เริ่มหมุน
+                icon.classList.add('spin-anim');
                 showContent(currentTab).then(() => {
-                    setTimeout(() => icon.classList.remove('spin-anim'), 500); // หยุดหมุน
+                    setTimeout(() => icon.classList.remove('spin-anim'), 500);
                 });
             } else {
                 alert("กรุณาเลือกเมนูก่อนรีเฟรช");
@@ -143,7 +149,7 @@
         }
 
         async function showContent(type) {
-            currentTab = type; // จำค่าหน้าปัจจุบันไว้
+            currentTab = type;
             const body = document.getElementById('content-body');
             const title = document.getElementById('content-title');
             const actionBtn = document.getElementById('action-buttons');
@@ -224,7 +230,7 @@
             document.getElementById('menu-name').value = "";
             document.getElementById('menu-price').value = "";
             document.getElementById('menu-desc').value = "";
-            document.getElementById('menu-image').value = ""; // Clear file input
+            document.getElementById('menu-image').value = ""; 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -236,7 +242,7 @@
             document.getElementById('menu-price').value = item.price;
             document.getElementById('menu-type').value = item.type;
             document.getElementById('menu-desc').value = item.description || "";
-            document.getElementById('menu-image').value = ""; // Clear file input
+            document.getElementById('menu-image').value = ""; 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
