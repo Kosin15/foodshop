@@ -15,177 +15,131 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .modal-enter { animation: slideUpModal 0.3s ease-out forwards; }
         @keyframes slideUpModal { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .pulse-soft { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-        .slide-up { animation: slideUpFade 0.5s ease-out forwards; }
-        @keyframes slideUpFade { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .grayscale { filter: grayscale(100%); opacity: 0.6; }
-        .animate-bounce-slow { animation: bounceSlow 3s infinite ease-in-out; }
-        @keyframes bounceSlow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         
-        #status-minimized { bottom: 100px; left: 20px; transition: all 0.3s; z-index: 40; }
-        .scale-in { animation: scaleIn 0.3s ease-out forwards; }
-        @keyframes scaleIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* Timeline Styles */
+        .timeline-line { position: absolute; left: 15px; top: 10px; bottom: 10px; width: 2px; background: #e2e8f0; z-index: 0; }
+        .timeline-item { position: relative; z-index: 1; display: flex; align-items: flex-start; margin-bottom: 20px; }
+        .timeline-dot { width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 2px solid #cbd5e1; display: flex; align-items: center; justify-content: center; margin-right: 15px; flex-shrink: 0; transition: all 0.3s; }
+        .timeline-dot.active { border-color: #10b981; background: #ecfdf5; color: #10b981; }
+        .timeline-dot.completed { background: #10b981; border-color: #10b981; color: white; }
+        
+        /* Table Grid */
+        .table-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .table-btn { aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f1f5f9; border: 2px solid #e2e8f0; color: #64748b; font-weight: bold; transition: all 0.2s; }
+        .table-btn.selected { background: #10b981; border-color: #059669; color: white; transform: scale(1.05); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        
+        /* Bottom Sheet Transition */
+        .slide-up-panel { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
 <body class="bg-[#f7fafc] text-slate-700 font-sans pb-32">
 
     <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
 
-    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[110] px-6 py-3 rounded-full shadow-xl text-white font-bold hidden transition-all duration-300 w-max max-w-[90%] text-center">
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[150] px-6 py-3 rounded-2xl shadow-xl text-white font-bold hidden transition-all duration-300 w-max max-w-[90%] flex items-center justify-between gap-4">
         <span id="toast-msg"></span>
+        <button onclick="closeToast()" class="bg-white/20 hover:bg-white/40 text-white rounded-full w-8 h-8 flex items-center justify-center transition shrink-0"><i class="fas fa-times text-xs"></i></button>
     </div>
 
-    <div id="table-select-modal" class="fixed inset-0 bg-emerald-600/95 z-[120] flex items-center justify-center p-6 hidden backdrop-blur-sm">
-        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center shadow-2xl animate-bounce-in overflow-hidden relative">
-            <div class="w-32 h-32 mx-auto mb-2 relative animate-bounce-slow z-10">
-                <img src="https://cdn-icons-png.flaticon.com/512/2663/2663067.png" alt="Cute Rabbit Logo" class="w-full h-full object-contain drop-shadow-lg">
+    <div id="table-select-modal" class="fixed inset-0 bg-emerald-900/95 z-[200] flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl h-[85vh] flex flex-col">
+            <h2 class="text-xl font-bold text-slate-800 mb-1">เลือกที่นั่งของคุณ 🐰</h2>
+            <p class="text-slate-400 text-sm mb-4">จิ้มเบอร์โต๊ะเพื่อเริ่มสั่งอาหาร</p>
+            <div class="flex-1 overflow-y-auto no-scrollbar">
+                <div class="table-grid" id="table-grid-container"></div>
             </div>
-            <h2 class="text-xl font-bold text-slate-800 mb-1 relative z-10">ยินดีต้อนรับสู่</h2>
-            <h3 class="text-2xl font-bold text-emerald-600 mb-6 relative z-10">ร้านอาหารน้องหนึ่ง🐰🤍</h3>
-            <p class="text-slate-400 mb-6 text-sm font-medium relative z-10">กรุณาเลือกโต๊ะของคุณ (1 - 20)</p>
-            <div class="relative mb-8 z-10">
-                <input type="number" id="input-table-num" inputmode="numeric" min="1" max="20" class="w-full text-center text-4xl font-bold border-b-4 border-emerald-200 bg-transparent py-2 focus:border-emerald-500 focus:outline-none text-emerald-600 transition-colors" placeholder="00">
+            <div class="mt-4 pt-4 border-t border-slate-100">
+                <p class="text-emerald-600 font-bold text-lg mb-3">โต๊ะที่เลือก: <span id="selected-table-show" class="text-2xl">--</span></p>
+                <button onclick="confirmTableSelection()" id="btn-confirm-table" class="w-full bg-slate-300 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed transition" disabled>ยืนยัน</button>
             </div>
-            <button onclick="confirmTableSelection()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition transform active:scale-95 flex items-center justify-center gap-2 relative z-10">
-                <span>เริ่มสั่งเลย</span> <i class="fas fa-chevron-right text-sm"></i>
-            </button>
         </div>
     </div>
 
-    <div id="status-minimized" onclick="restoreStatusBar()" class="fixed hidden scale-in cursor-pointer">
-        <div id="minimized-bubble" class="bg-white p-3 rounded-full shadow-2xl border-4 border-emerald-500 relative flex items-center justify-center w-16 h-16 animate-bounce">
-            <i id="minimized-icon" class="fas fa-utensils text-emerald-500 text-xl"></i>
-            <span class="absolute -top-1 -right-1 flex h-4 w-4">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500"></span>
-            </span>
-        </div>
+    <div id="status-minimized" onclick="restoreStatusBar()" class="fixed z-[90] hidden bottom-24 left-4 bg-white p-3 rounded-full shadow-lg border-4 border-emerald-500 cursor-pointer animate-bounce">
+        <i class="fas fa-receipt text-emerald-600 text-xl"></i>
     </div>
 
-    <div id="order-status-bar" class="fixed bottom-24 left-0 right-0 z-40 hidden px-4 pointer-events-none">
-        <div class="max-w-md mx-auto bg-white rounded-2xl shadow-[0_-5px_25px_rgba(0,0,0,0.08)] border-l-[10px] p-5 flex items-center justify-between transition-all duration-500 pointer-events-auto slide-up relative" id="status-card">
-            <button onclick="minimizeStatusBar()" class="absolute -top-2 right-8 bg-slate-100 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-colors z-50 pointer-events-auto mr-1">
-                <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <button onclick="closeStatusBarForever()" class="absolute -top-2 -right-2 bg-red-100 text-red-500 hover:bg-red-200 rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-colors z-50 pointer-events-auto">
-                <i class="fas fa-times text-xs"></i>
-            </button>
-
-            <div class="flex items-center">
-                <div id="status-icon" class="bg-slate-50 p-3 rounded-full mr-4 border-2 border-white shadow-sm"></div>
-                <div>
-                    <h4 class="font-bold text-slate-800 text-lg leading-tight" id="status-title">รอยืนยัน</h4>
-                    <p class="text-sm text-slate-400" id="status-desc">ส่งรายการแล้ว...</p>
-                </div>
+    <div id="order-status-bar" class="fixed bottom-0 left-0 right-0 z-[100] bg-white rounded-t-3xl shadow-[0_-5px_30px_rgba(0,0,0,0.1)] p-6 hidden slide-up-panel transform translate-y-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-lg text-slate-800">สถานะออเดอร์</h3>
+            <div class="flex gap-2">
+                <button onclick="minimizeStatusBar()" class="text-slate-400 hover:text-emerald-500 w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full"><i class="fas fa-chevron-down"></i></button>
+                <button onclick="closeStatusBarForever()" class="text-red-400 hover:text-red-500 w-8 h-8 flex items-center justify-center bg-red-50 rounded-full"><i class="fas fa-times"></i></button>
             </div>
-            <div id="status-time" class="text-emerald-700 font-bold text-lg bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-100 hidden"></div>
         </div>
+        <div class="relative pl-2" id="timeline-container">
+            </div>
     </div>
 
-    <nav class="bg-emerald-600 text-white p-4 sticky top-0 z-50 shadow-lg flex justify-between items-center h-18">
-        <div onclick="document.getElementById('table-select-modal').classList.remove('hidden')" class="flex items-center gap-2 cursor-pointer bg-white/10 px-4 py-2 rounded-full hover:bg-white/20 transition active:scale-95 overflow-hidden">
-            <i class="fas fa-rabbit text-amber-300"></i>
-            <span class="text-sm font-bold tracking-wide whitespace-nowrap overflow-visible" id="table-display">น้องหนึ่ง🐰🤍</span>
+    <nav class="bg-emerald-600 text-white p-4 sticky top-0 z-50 shadow-lg flex justify-between items-center h-16">
+        <div onclick="openTableSelector()" class="flex items-center gap-2 cursor-pointer bg-white/10 px-4 py-2 rounded-full active:scale-95">
+            <span class="text-xl">🐰</span> <span class="text-sm font-bold truncate max-w-[120px]" id="table-display">เลือกโต๊ะ</span>
         </div>
-        <div class="flex items-center space-x-2 shrink-0">
-            <button onclick="openHistoryModal()" class="bg-white/10 p-2.5 rounded-full hover:bg-white/20 transition relative">
+        <div class="flex gap-2">
+            <button onclick="openHistoryModal()" class="bg-white/10 p-2 rounded-full relative hover:bg-white/20 transition">
                 <i class="fas fa-history text-lg"></i>
-                <span id="history-badge" class="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-emerald-600 rounded-full hidden"></span>
+                <span id="history-badge" class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full hidden border border-white"></span>
             </button>
-            <button onclick="loadMenu()" class="bg-white/10 p-2.5 rounded-full hover:bg-white/20 transition hover:rotate-180 duration-500">
-                <i class="fas fa-sync-alt text-lg"></i>
-            </button>
-            <a href="admin.html" class="bg-white/10 p-2.5 rounded-full hover:bg-white/20 transition">
-                <i class="fas fa-user-cog text-lg"></i>
-            </a>
+            <a href="admin.html" class="bg-white/10 p-2 rounded-full hover:bg-white/20 transition"><i class="fas fa-user-cog text-lg"></i></a>
         </div>
     </nav>
 
-    <div class="sticky top-[72px] z-40 bg-white/80 backdrop-blur-md py-3 border-b border-slate-100 shadow-sm overflow-hidden">
-        <div class="flex space-x-3 px-4 overflow-x-auto no-scrollbar whitespace-nowrap max-w-md mx-auto">
-            <button onclick="filterMenu('all')" class="filter-btn bg-emerald-600 text-white px-5 py-2 rounded-full text-sm font-bold shadow-md transition-all border border-transparent" data-type="all">ทั้งหมด</button>
-            <button onclick="filterMenu('food')" class="filter-btn bg-white text-slate-500 px-5 py-2 rounded-full text-sm font-bold shadow-sm border border-slate-200 hover:bg-emerald-50 transition-all" data-type="food">🍛 อาหาร</button>
-            <button onclick="filterMenu('drink')" class="filter-btn bg-white text-slate-500 px-5 py-2 rounded-full text-sm font-bold shadow-sm border border-slate-200 hover:bg-blue-50 transition-all" data-type="drink">🥤 เครื่องดื่ม</button>
-            <button onclick="filterMenu('dessert')" class="filter-btn bg-white text-slate-500 px-5 py-2 rounded-full text-sm font-bold shadow-sm border border-slate-200 hover:bg-pink-50 transition-all" data-type="dessert">🍰 ของหวาน</button>
+    <div class="sticky top-16 z-40 bg-white/95 backdrop-blur py-2 shadow-sm border-b overflow-x-auto no-scrollbar flex px-4 gap-2">
+        <button onclick="filterMenu('all')" class="filter-btn active bg-emerald-600 text-white px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap">ทั้งหมด</button>
+        <button onclick="filterMenu('food')" class="filter-btn bg-slate-100 text-slate-500 px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap">อาหาร</button>
+        <button onclick="filterMenu('drink')" class="filter-btn bg-slate-100 text-slate-500 px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap">เครื่องดื่ม</button>
+        <button onclick="filterMenu('dessert')" class="filter-btn bg-slate-100 text-slate-500 px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap">ของหวาน</button>
+    </div>
+
+    <div class="p-4 pb-24 max-w-md mx-auto min-h-screen space-y-8">
+        <div id="section-food"><h2 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-utensils text-emerald-500"></i> รายการอาหาร</h2><div id="food-list" class="space-y-3"></div></div>
+        <div id="section-drink"><h2 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-glass-water text-blue-500"></i> เครื่องดื่ม</h2><div id="drink-list" class="space-y-3"></div></div>
+        <div id="section-dessert"><h2 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-ice-cream text-pink-500"></i> ของหวาน</h2><div id="dessert-list" class="space-y-3"></div></div>
+    </div>
+
+    <div id="cart-bar" class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg hidden z-40">
+        <div class="flex justify-between items-center bg-emerald-600 text-white p-4 rounded-2xl shadow-emerald-200 shadow-xl cursor-pointer" onclick="openCartModal()">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 w-10 h-10 rounded-full flex items-center justify-center font-bold" id="cart-count">0</div>
+                <div class="flex flex-col"><span class="text-xs opacity-80">ยอดรวม</span><span class="font-bold text-lg">฿<span id="cart-total">0</span></span></div>
+            </div>
+            <span class="font-bold">ดูตะกร้า <i class="fas fa-chevron-right ml-1"></i></span>
         </div>
     </div>
 
-    <div class="p-5 max-w-md mx-auto min-h-screen">
-        <div id="section-food" class="mb-10 section-group"><h2 class="text-lg font-bold mb-4 text-slate-800 flex items-center justify-between"><span>รายการอาหาร</span><span class="h-1 flex-1 mx-4 bg-emerald-100 rounded-full"></span><i class="fas fa-utensils text-emerald-500"></i></h2><div id="food-list" class="space-y-4"><div class="loading-shimmer h-24 rounded-2xl w-full"></div></div></div>
-        <div id="section-drink" class="mb-10 section-group border-t border-slate-100 pt-6"><h2 class="text-lg font-bold mb-4 text-slate-800 flex items-center justify-between"><span>รายการเครื่องดื่ม</span><span class="h-1 flex-1 mx-4 bg-blue-100 rounded-full"></span><i class="fas fa-glass-whiskey text-blue-500"></i></h2><div id="drink-list" class="space-y-4"><div class="loading-shimmer h-24 rounded-2xl w-full"></div></div></div>
-        <div id="section-dessert" class="mb-10 section-group border-t border-slate-100 pt-6"><h2 class="text-lg font-bold mb-4 text-slate-800 flex items-center justify-between"><span>เมนูของหวาน</span><span class="h-1 flex-1 mx-4 bg-pink-100 rounded-full"></span><i class="fas fa-ice-cream text-pink-500"></i></h2><div id="dessert-list" class="space-y-4"><div class="loading-shimmer h-24 rounded-2xl w-full"></div></div></div>
-    </div>
-
-    <div id="cart-bar" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] hidden z-50">
-        <div class="max-w-md mx-auto flex justify-between items-center cursor-pointer" onclick="openCartModal()">
-            <div class="flex items-center">
-                <div class="relative mr-5">
-                    <div class="bg-amber-400 p-3 rounded-2xl shadow-lg shadow-amber-100"><i class="fas fa-shopping-basket text-white text-2xl"></i></div>
-                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-[11px] w-6 h-6 flex items-center justify-center rounded-full border-2 border-white font-bold animate-bounce">0</span>
-                </div>
-                <div>
-                    <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">ยอดรวมสุทธิ</p>
-                    <p class="text-2xl font-bold text-slate-800">฿<span id="cart-total">0</span></p>
-                </div>
-            </div>
-            <button class="bg-amber-500 text-white px-7 py-3 rounded-2xl font-bold hover:bg-amber-600 transition shadow-xl shadow-amber-100 text-sm flex items-center gap-2">ดูรายการ <i class="fas fa-arrow-right text-xs"></i></button>
-        </div>
-    </div>
-
-    <div id="cart-modal" class="fixed inset-0 bg-slate-900/60 hidden z-[60] flex items-end sm:items-center justify-center transition-opacity backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md p-6 rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl h-[85vh] flex flex-col modal-enter">
-            <div class="flex justify-between items-center mb-6 border-b border-slate-50 pb-4">
-                <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-cart-plus text-emerald-500"></i> ตะกร้าสินค้า</h3>
-                <button onclick="closeCartModal()" class="bg-slate-50 text-slate-400 w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
-            </div>
+    <div id="cart-modal" class="fixed inset-0 bg-black/50 hidden z-[60] flex items-end justify-center backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md p-6 rounded-t-3xl h-[85vh] flex flex-col modal-enter">
+            <div class="flex justify-between items-center mb-4 border-b pb-4"><h3 class="text-2xl font-bold">ตะกร้าของฉัน</h3><button onclick="closeCartModal()" class="w-8 h-8 bg-slate-100 rounded-full"><i class="fas fa-times"></i></button></div>
             <div id="cart-items-container" class="flex-1 overflow-y-auto space-y-4 pr-1"></div>
-            <div class="mt-6 border-t border-slate-50 pt-6">
-                <div class="flex justify-between items-center mb-6">
-                    <span class="text-slate-400 font-bold">รวมทั้งสิ้น</span>
-                    <span class="text-3xl font-bold text-emerald-600">฿<span id="modal-total">0</span></span>
-                </div>
-                <button onclick="goToPayment()" class="w-full bg-emerald-600 text-white py-5 rounded-[1.5rem] font-bold text-lg hover:bg-emerald-700 transition shadow-2xl shadow-emerald-100 flex justify-center items-center gap-3">
-                    <span>ชำระเงิน</span> <i class="fas fa-lock text-sm opacity-50"></i>
-                </button>
+            <div class="mt-4 pt-4 border-t">
+                <div class="flex justify-between items-center mb-4"><span class="text-slate-500 font-bold">ยอดสุทธิ</span><span class="text-3xl font-bold text-emerald-600">฿<span id="modal-total">0</span></span></div>
+                <button onclick="goToPayment()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-emerald-700 transition">ยืนยันการสั่ง</button>
             </div>
         </div>
     </div>
 
-    <div id="payment-modal" class="fixed inset-0 bg-slate-900/80 hidden z-[100] flex items-center justify-center p-5 backdrop-blur-sm">
-        <div class="bg-white rounded-[2rem] w-full max-w-sm p-8 text-center shadow-2xl transform scale-100 animate-fade-in relative">
-            <button onclick="backToCart()" class="absolute top-4 right-4 bg-slate-100 text-slate-400 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
-            
-            <h3 class="text-xl font-bold text-slate-800 mb-2">สรุปยอดชำระ</h3>
-            <div class="inline-block bg-slate-50 px-4 py-1 rounded-full text-xs font-bold text-slate-400 mb-6">โต๊ะ <span id="pay-table" class="text-emerald-600">--</span></div>
-            <div class="bg-slate-50 p-6 rounded-[2rem] mb-6 border-2 border-dashed border-slate-200">
-                <img id="qr-image" src="" class="w-52 h-52 mx-auto rounded-xl bg-white shadow-sm" alt="QR Code">
-                <button onclick="downloadQRCode()" class="mt-4 bg-white text-emerald-600 border border-emerald-100 px-5 py-2 rounded-full text-xs font-bold hover:bg-emerald-50 transition shadow-sm mx-auto flex items-center gap-2">
-                    <i class="fas fa-save"></i> บันทึกรูปภาพ
-                </button>
+    <div id="payment-modal" class="fixed inset-0 bg-black/60 hidden z-[70] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 text-center shadow-2xl relative">
+            <button onclick="backToCart()" class="absolute top-4 right-4 text-slate-400"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold mb-4">ชำระเงิน</h3>
+            <div class="bg-slate-50 p-4 rounded-xl border-2 border-dashed border-slate-200 mb-4">
+                <img id="qr-image" src="https://placehold.co/200x200?text=Generating+QR..." class="w-48 h-48 mx-auto rounded-lg mb-2 bg-white">
+                <p class="text-xs text-slate-400">PromptPay</p>
             </div>
-            <div class="mb-6 text-left">
-                <label class="text-[11px] font-bold text-slate-400 uppercase ml-2 mb-2 block tracking-widest">แนบสลิป (ถ้ามี)</label>
-                <input type="file" id="slip-input" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 border border-slate-100 rounded-full p-1 bg-white shadow-sm">
+            <div class="mb-4 text-left">
+                <label class="text-xs font-bold text-slate-500 mb-1 block">แนบสลิป (ถ้ามี)</label>
+                <input type="file" id="slip-input" accept="image/*" class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 border rounded-lg p-1">
             </div>
-            <div class="text-4xl font-bold text-slate-800 mb-8">฿<span id="pay-total">0</span></div>
-            <div class="flex gap-3">
-                <button onclick="backToCart()" class="flex-1 py-4 bg-slate-50 text-slate-500 rounded-2xl font-bold hover:bg-slate-100 transition">แก้ไข</button>
-                <button onclick="confirmOrder()" class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 shadow-xl shadow-emerald-100 transition">แจ้งโอน</button>
-            </div>
+            <div class="text-3xl font-bold text-emerald-600 mb-6">฿<span id="pay-total">0</span></div>
+            <button onclick="confirmOrder()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700">แจ้งโอนเงิน</button>
         </div>
     </div>
 
-    <div id="history-modal" class="fixed inset-0 bg-slate-900/60 hidden z-[80] flex items-end sm:items-center justify-center transition-opacity backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md p-6 rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl h-[85vh] flex flex-col modal-enter">
-            <div class="flex justify-between items-center mb-6 border-b border-slate-50 pb-4">
-                <h3 class="text-2xl font-bold text-slate-800">ประวัติการสั่งซื้อ</h3>
-                <button onclick="closeHistoryModal()" class="bg-slate-50 text-slate-400 w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="history-container" class="flex-1 overflow-y-auto space-y-4 pr-1 bg-slate-50/50 rounded-2xl p-3"></div>
-            <div class="mt-4 border-t border-slate-50 pt-4 text-center">
-                <button onclick="clearHistory()" class="text-slate-300 text-xs font-bold hover:text-red-400 transition">ล้างประวัติทั้งหมด</button>
-            </div>
+    <div id="history-modal" class="fixed inset-0 bg-black/50 hidden z-[80] flex items-end justify-center">
+        <div class="bg-white w-full max-w-md p-6 rounded-t-3xl h-[70vh] flex flex-col modal-enter">
+            <div class="flex justify-between mb-4 pb-2 border-b"><h3 class="font-bold text-lg">ประวัติ</h3><button onclick="closeHistoryModal()"><i class="fas fa-times"></i></button></div>
+            <div id="history-container" class="flex-1 overflow-y-auto space-y-3"></div>
+            <div class="mt-4 pt-2 text-center border-t"><button onclick="clearHistory()" class="text-red-400 text-sm underline">ล้างประวัติ</button></div>
         </div>
     </div>
 
@@ -195,57 +149,103 @@
         
         let cartItems = [];
         let orderHistory = JSON.parse(localStorage.getItem('orderHistory')) || [];
-        let serverOrderStatuses = []; 
-        let completedCount = 0;
-        let isStatusMinimized = false;
-        let isStatusClosedForever = false; // 🔥 ตัวแปรสำหรับปุ่มปิดถาวร
-        let lastKnownRawStatus = "";
+        let serverOrderStatuses = [];
+        let tempSelectedTable = null;
+        let tableNumber = new URLSearchParams(window.location.search).get('table');
         let isFirstLoad = true;
-
-        const urlParams = new URLSearchParams(window.location.search);
-        let tableNumber = urlParams.get('table');
-        if (tableNumber) tableNumber = parseInt(tableNumber).toString();
+        let isStatusClosed = false; // 🔥 ตัวแปรควบคุมการปิดแจ้งเตือนถาวร
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (!tableNumber || tableNumber === "NaN") {
-                document.getElementById('table-select-modal').classList.remove('hidden');
-                document.getElementById('table-display').innerText = `เลือกโต๊ะ`; 
-            } else {
-                document.getElementById('table-display').innerText = `น้องหนึ่ง🐰🤍 (โต๊ะ ${tableNumber})`;
+            renderTableGrid();
+            if (!tableNumber) openTableSelector();
+            else {
+                document.getElementById('table-display').innerText = `โต๊ะ ${tableNumber}`;
                 startStatusCheck();
             }
             loadMenu();
         });
 
-        function confirmTableSelection() {
-            const inputElement = document.getElementById('input-table-num');
-            const inputVal = parseInt(inputElement.value);
-            if (!inputVal || inputVal < 1 || inputVal > 20) {
-                alert("กรุณาระบุโต๊ะ 1 ถึง 20 ครับ");
-                inputElement.value = "";
-                return;
+        // 1. Table Map
+        function renderTableGrid() {
+            const container = document.getElementById('table-grid-container');
+            container.innerHTML = '';
+            for (let i = 1; i <= 20; i++) {
+                container.innerHTML += `<button onclick="selectTable(${i})" class="table-btn" id="tbl-${i}">${i}</button>`;
             }
-            window.location.href = window.location.pathname + '?table=' + inputVal;
+        }
+        function openTableSelector() { document.getElementById('table-select-modal').classList.remove('hidden'); }
+        function selectTable(num) {
+            document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById(`tbl-${num}`).classList.add('selected');
+            tempSelectedTable = num;
+            document.getElementById('selected-table-show').innerText = num;
+            const btn = document.getElementById('btn-confirm-table');
+            btn.classList.remove('bg-slate-300', 'cursor-not-allowed');
+            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            btn.disabled = false;
+        }
+        function confirmTableSelection() {
+            if(!tempSelectedTable) return;
+            tableNumber = tempSelectedTable;
+            document.getElementById('table-display').innerText = `โต๊ะ ${tableNumber}`;
+            document.getElementById('table-select-modal').classList.add('hidden');
+            const newUrl = window.location.pathname + '?table=' + tableNumber;
+            window.history.pushState({path:newUrl},'',newUrl);
+            startStatusCheck();
         }
 
-        // --- Status Management ---
+        // 2. Timeline & Status Logic (Fixed Bug)
         function minimizeStatusBar() {
-            isStatusMinimized = true;
-            document.getElementById('order-status-bar').classList.add('hidden');
+            document.getElementById('order-status-bar').classList.remove('translate-y-0');
+            document.getElementById('order-status-bar').classList.add('translate-y-full');
             document.getElementById('status-minimized').classList.remove('hidden');
         }
-
         function restoreStatusBar() {
-            isStatusMinimized = false;
-            isStatusClosedForever = false; // ถ้ากดเปิด ก็ยกเลิกการปิดถาวร
-            document.getElementById('order-status-bar').classList.remove('hidden');
+            document.getElementById('order-status-bar').classList.remove('hidden', 'translate-y-full');
+            document.getElementById('order-status-bar').classList.add('translate-y-0');
             document.getElementById('status-minimized').classList.add('hidden');
+            isStatusClosed = false; // Reset close state
         }
-
         function closeStatusBarForever() {
-            isStatusClosedForever = true;
             document.getElementById('order-status-bar').classList.add('hidden');
             document.getElementById('status-minimized').classList.add('hidden');
+            isStatusClosed = true; // 🔥 Set flag to true
+        }
+
+        function renderTimeline(status, time, orderTime) {
+            const container = document.getElementById('timeline-container');
+            let step1Class = 'completed', step2Class = '', step3Class = '';
+            let step1Icon = '<i class="fas fa-check"></i>', step2Icon = '2', step3Icon = '3';
+            
+            if (status === 'cooking') {
+                step2Class = 'active'; step2Icon = '<i class="fas fa-fire fa-beat"></i>';
+            } else if (status === 'completed') {
+                step2Class = 'completed'; step2Icon = '<i class="fas fa-check"></i>';
+                step3Class = 'completed'; step3Icon = '<i class="fas fa-utensils"></i>';
+            }
+
+            const formatTime = (iso) => iso ? new Date(iso).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}) : '--:--';
+
+            container.innerHTML = `
+                <div class="timeline-line"></div>
+                <div class="timeline-item">
+                    <div class="timeline-dot ${step1Class}">${step1Icon}</div>
+                    <div><p class="font-bold text-sm">รับออเดอร์</p><p class="text-xs text-slate-400">${formatTime(orderTime)}</p></div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot ${step2Class}">${step2Icon}</div>
+                    <div><p class="font-bold text-sm ${status==='cooking'?'text-emerald-600':''}">กำลังปรุง</p><p class="text-xs text-slate-400">${status==='cooking' ? (time || 'รอสักครู่') : ''}</p></div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot ${step3Class}">${step3Icon}</div>
+                    <div><p class="font-bold text-sm">เสร็จสิ้น</p><p class="text-xs text-slate-400">${status==='completed'?'พร้อมเสิร์ฟ':''}</p></div>
+                </div>
+            `;
+            
+            // 🔥 Fix: Only show if NOT closed by user
+            if (!isStatusClosed) {
+                document.getElementById('order-status-bar').classList.remove('hidden', 'translate-y-full');
+            }
         }
 
         async function checkStatus() {
@@ -253,229 +253,141 @@
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=checkStatus&table=${tableNumber}`);
                 const data = await res.json();
-                if(data.orders && Array.isArray(data.orders)) {
+                if(data.orders && data.orders.length > 0) {
                     serverOrderStatuses = data.orders;
-                    const latestOrder = serverOrderStatuses[serverOrderStatuses.length - 1]; 
-                    if(latestOrder) {
-                        const currentStatusKey = latestOrder.status + latestOrder.estTime;
-                        if (currentStatusKey !== lastKnownRawStatus) {
-                            if (!isFirstLoad && !isStatusClosedForever) restoreStatusBar(); 
-                            lastKnownRawStatus = currentStatusKey;
-                        }
-                        updateStatusBarUIContent(latestOrder.status, latestOrder.estTime);
-                        updateMinimizedIcon(latestOrder.status);
-                    }
+                    const latest = data.orders[data.orders.length - 1];
                     
-                    const newCompletedCount = serverOrderStatuses.filter(o => o.status === 'completed').length;
-                    if (isFirstLoad) {
-                        completedCount = newCompletedCount;
-                        isFirstLoad = false;
-                    } else if (newCompletedCount > completedCount) {
-                        playNotification();
-                        completedCount = newCompletedCount;
+                    if(latest.status !== 'waiting' || isFirstLoad) {
+                        renderTimeline(latest.status, latest.estTime, latest.orderTime);
                     }
+
+                    const completed = data.orders.filter(o => o.status === 'completed').length;
+                    const storedCompleted = parseInt(localStorage.getItem('completedCount') || 0);
+                    
+                    if (completed > storedCompleted && !isFirstLoad) {
+                        playNotification();
+                    }
+                    localStorage.setItem('completedCount', completed);
+                    isFirstLoad = false;
                 }
-            } catch (e) {}
+            } catch(e) {}
         }
 
-        function updateStatusBarUIContent(status, time) {
-            const bar = document.getElementById('order-status-bar');
-            const card = document.getElementById('status-card');
-            const iconDiv = document.getElementById('status-icon');
-            const title = document.getElementById('status-title');
-            const desc = document.getElementById('status-desc');
-            const timeDiv = document.getElementById('status-time');
-            if (!status || status === 'none' || isStatusClosedForever) { bar.classList.add('hidden'); return; }
-            if (!isStatusMinimized) bar.classList.remove('hidden');
-            timeDiv.classList.add('hidden');
-            card.className = "max-w-md mx-auto bg-white rounded-2xl shadow-[0_-5px_25px_rgba(0,0,0,0.08)] border-l-[10px] p-5 flex items-center justify-between transition-all duration-500 pointer-events-auto slide-up relative";
-            if (status === 'waiting') { card.classList.add('border-amber-400'); iconDiv.innerHTML = '<i class="fas fa-clock text-amber-500 text-2xl"></i>'; title.innerText = "รอรับออเดอร์"; desc.innerText = "ส่งรายการสำเร็จ..."; }
-            else if (status === 'cooking') { card.classList.add('border-blue-500'); iconDiv.innerHTML = '<i class="fas fa-fire text-blue-500 text-2xl animate-pulse"></i>'; title.innerText = "กำลังปรุงอาหาร"; desc.innerText = "ใกล้เสร็จแล้วครับ"; if(time) { timeDiv.innerText = `${time}`; timeDiv.classList.remove('hidden'); } }
-            else if (status === 'completed') { card.classList.add('border-emerald-500', 'pulse-soft'); iconDiv.innerHTML = '<i class="fas fa-check-circle text-emerald-500 text-3xl"></i>'; title.innerText = "อาหารเสร็จแล้ว!"; desc.innerText = "กำลังนำไปเสิร์ฟให้ครับ"; }
-        }
-
-        function updateMinimizedIcon(status) {
-            const icon = document.getElementById('minimized-icon');
-            const bubble = document.getElementById('minimized-bubble');
-            if (status === 'waiting') { icon.className = "fas fa-clock text-amber-500 text-xl"; bubble.style.borderColor = "#f59e0b"; }
-            else if (status === 'cooking') { icon.className = "fas fa-fire text-blue-500 text-xl"; bubble.style.borderColor = "#3b82f6"; }
-            else if (status === 'completed') { icon.className = "fas fa-check-circle text-emerald-500 text-xl"; bubble.style.borderColor = "#10b981"; }
-        }
-
-        // --- Menu & Cart Logic ---
+        // 3. Menu & Cart
         async function loadMenu() {
             try {
-                const response = await fetch(SCRIPT_URL + "?action=getMenu"); const menuItems = await response.json();
+                const res = await fetch(`${SCRIPT_URL}?action=getMenu`); const menu = await res.json();
                 ['food', 'drink', 'dessert'].forEach(t => document.getElementById(t + '-list').innerHTML = '');
-                if (menuItems.length === 0) return;
-                menuItems.forEach(item => {
-                    let btnColor = item.type === 'drink' ? 'bg-blue-500' : (item.type === 'dessert' ? 'bg-pink-500' : 'bg-amber-500');
-                    const isActive = item.status === true; const hasStock = item.isUnlimited || item.stock > 0;
-                    let buttonHtml = !isActive ? `<span class="text-stone-400 font-bold text-xs border border-stone-300 px-3 py-1 rounded-full">ปิดรับ</span>` : (!hasStock ? `<span class="text-red-500 font-bold text-xs bg-red-50 px-3 py-1 rounded-full">สินค้าหมด</span>` : `<button onclick="addToCart('${item.name}', ${item.price}, '${item.imgUrl}')" class="${btnColor} text-white px-4 py-1.5 rounded-full text-xs active:scale-90 transition shadow-sm font-bold">+ เพิ่ม</button>`);
-                    let imgClass = (!isActive || !hasStock) ? 'grayscale opacity-50' : '';
-                    const card = `<div class="bg-white rounded-[1.5rem] shadow-sm overflow-hidden flex border border-stone-100 h-28"><img src="${item.imgUrl}" class="w-28 h-28 object-cover bg-stone-50 ${imgClass}" onerror="this.src='https://placehold.co/200x200?text=No+Image'"><div class="p-3 flex-1 flex flex-col justify-between"><div><h3 class="font-bold text-stone-800 text-sm mb-1">${item.name}</h3><p class="text-stone-400 text-[10px] line-clamp-2 leading-tight">${item.description || ''}</p></div><div class="flex justify-between items-center mt-2"><span class="font-bold text-emerald-700 text-base">฿${item.price}</span>${buttonHtml}</div></div></div>`;
-                    const target = document.getElementById(item.type + '-list'); if(target) target.innerHTML += card;
+                menu.forEach(item => {
+                    const isActive = item.status; const hasStock = item.isUnlimited || item.stock > 0;
+                    let btn = !isActive ? '<span class="text-xs text-slate-300">ปิดรับ</span>' : (!hasStock ? '<span class="text-xs text-red-400">หมด</span>' : `<button onclick="addToCart('${item.name}', ${item.price}, '${item.imgUrl}')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold">+ เพิ่ม</button>`);
+                    let html = `<div class="bg-white p-3 rounded-2xl shadow-sm flex gap-3"><img src="${item.imgUrl}" class="w-20 h-20 rounded-xl object-cover ${(!isActive||!hasStock)?'grayscale':''}"><div class="flex-1 flex flex-col justify-between"><div><h4 class="font-bold text-sm text-slate-800">${item.name}</h4><p class="text-[10px] text-slate-400 line-clamp-1">${item.description||''}</p></div><div class="flex justify-between items-center"><span class="text-emerald-600 font-bold">฿${item.price}</span>${btn}</div></div></div>`;
+                    document.getElementById(item.type + '-list').innerHTML += html;
                 });
-            } catch (e) {}
+            } catch(e){}
         }
 
         function addToCart(name, price, img) {
-            const existingItem = cartItems.find(item => item.name === name);
-            if (existingItem) existingItem.qty++; else cartItems.push({ name, price, qty: 1, img });
-            updateCartUI(); showToast(`เพิ่ม ${name} แล้ว ✨`, true);
+            cartItems.push({ name, price, img, qty: 1, note: '' });
+            updateCartUI(); showToast(`เพิ่ม ${name} แล้ว`, true);
         }
 
         function updateCartUI() {
-            const totalQty = cartItems.reduce((sum, item) => sum + item.qty, 0);
-            const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            document.getElementById('cart-bar').classList.toggle('hidden', totalQty === 0);
-            document.getElementById('cart-count').innerText = totalQty;
-            document.getElementById('cart-total').innerText = totalPrice.toLocaleString();
-            document.getElementById('modal-total').innerText = totalPrice.toLocaleString();
-            document.getElementById('pay-total').innerText = totalPrice.toLocaleString();
+            const total = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
+            document.getElementById('cart-bar').classList.toggle('hidden', cartItems.length === 0);
+            document.getElementById('cart-count').innerText = cartItems.length;
+            document.getElementById('cart-total').innerText = total;
+            document.getElementById('pay-total').innerText = total; // Sync total to payment
+            document.getElementById('modal-total').innerText = total;
         }
 
         function openCartModal() {
-            const container = document.getElementById('cart-items-container'); container.innerHTML = '';
-            if (cartItems.length === 0) container.innerHTML = '<div class="text-center py-10 font-medium text-slate-300"><p>ยังไม่มีรายการสินค้า</p></div>';
-            else cartItems.forEach((item, index) => {
-                container.innerHTML += `<div class="flex items-center bg-stone-50 p-3 rounded-xl border border-stone-100"><img src="${item.img}" class="w-14 h-14 rounded-lg object-cover bg-white border" onerror="this.src='https://placehold.co/150?text=Food'"><div class="ml-3 flex-1"><h4 class="font-bold text-stone-800 text-xs">${item.name}</h4><p class="text-amber-700 font-bold text-sm">฿${(item.price * item.qty).toLocaleString()}</p></div><div class="flex items-center bg-white rounded-lg border shadow-sm"><button onclick="changeQty(${index}, -1)" class="px-2 py-1 text-red-500"><i class="fas fa-minus text-xs"></i></button><span class="px-2 font-bold text-sm text-stone-700 w-6 text-center">${item.qty}</span><button onclick="changeQty(${index}, 1)" class="px-2 py-1 text-emerald-500"><i class="fas fa-plus text-xs"></i></button></div><button onclick="removeItem(${index})" class="ml-3 text-stone-300"><i class="fas fa-trash-alt"></i></button></div>`;
+            const el = document.getElementById('cart-items-container'); el.innerHTML = '';
+            if(cartItems.length===0) { el.innerHTML = '<p class="text-center py-10 text-slate-300">ไม่มีสินค้า</p>'; return; }
+            cartItems.forEach((item, idx) => {
+                el.innerHTML += `
+                <div class="bg-slate-50 p-3 rounded-xl mb-2">
+                    <div class="flex gap-3 mb-2">
+                        <img src="${item.img}" class="w-12 h-12 rounded-lg object-cover">
+                        <div class="flex-1"><h4 class="font-bold text-sm">${item.name}</h4><p class="text-emerald-600 font-bold">฿${item.price}</p></div>
+                        <button onclick="removeItem(${idx})" class="text-slate-300"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <input type="text" placeholder="ระบุรายละเอียด (เช่น ไม่เผ็ด)" class="w-full text-xs p-2 rounded border border-slate-200 focus:outline-none focus:border-emerald-500" value="${item.note}" onchange="updateNote(${idx}, this.value)">
+                </div>`;
             });
             document.getElementById('cart-modal').classList.remove('hidden');
         }
-
+        
+        function updateNote(idx, val) { cartItems[idx].note = val; }
+        function removeItem(idx) { cartItems.splice(idx, 1); openCartModal(); updateCartUI(); }
         function closeCartModal() { document.getElementById('cart-modal').classList.add('hidden'); }
-        function changeQty(index, delta) { cartItems[index].qty += delta; if (cartItems[index].qty <= 0) { if(confirm("ลบเมนูนี้?")) cartItems.splice(index, 1); else cartItems[index].qty = 1; } if (cartItems.length === 0) closeCartModal(); else openCartModal(); updateCartUI(); }
-        function removeItem(index) { if(confirm("ยืนยันลบรายการนี้?")) { cartItems.splice(index, 1); if (cartItems.length === 0) closeCartModal(); else openCartModal(); updateCartUI(); } }
         
         function goToPayment() { 
-            if (cartItems.length === 0) return; 
+            if(cartItems.length === 0) return;
             closeCartModal(); 
             document.getElementById('payment-modal').classList.remove('hidden'); 
-            document.getElementById('pay-table').innerText = tableNumber || "--"; 
-            document.getElementById('qr-image').src = `https://promptpay.io/${PROMPTPAY_ID}/${cartItems.reduce((s, i) => s + (i.price * i.qty), 0)}`; 
+            const total = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
+            // 🔥 Generate QR Code Link
+            const qrUrl = `https://promptpay.io/${PROMPTPAY_ID}/${total}`;
+            document.getElementById('qr-image').src = qrUrl;
         }
+        
         function backToCart() { document.getElementById('payment-modal').classList.add('hidden'); document.getElementById('cart-modal').classList.remove('hidden'); }
 
         async function confirmOrder() {
-            // 🔥 ป้องกันกดซ้ำและแก้ปัญหาเสียงบล็อกการทำงาน
-            const btn = document.querySelector('#payment-modal button.bg-emerald-600'); 
-            btn.innerText = "กำลังส่ง...";
-            btn.disabled = true;
-
-            // 1. เล่นเสียง (ถ้าเล่นไม่ได้ให้ข้ามไปเลย ไม่ต้อง error)
-            try { 
-                const sound = document.getElementById('success-sound'); 
-                await sound.play(); 
-            } catch(e) { console.log("Audio not allowed, skipping"); }
-
-            const fileInput = document.getElementById('slip-input'); 
-            let slipBase64 = ""; 
-            if (fileInput.files.length > 0) { 
-                try { 
-                    slipBase64 = await toBase64(fileInput.files[0]); 
-                } catch (e) { 
-                    alert("ไฟล์รูปไม่ถูกต้อง"); 
-                    btn.innerText = "แจ้งโอน"; btn.disabled = false; 
-                    return; 
-                } 
-            }
-
-            const totalPrice = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
-            
+            const btn = document.querySelector('#payment-modal button'); btn.innerText = "กำลังส่ง..."; btn.disabled = true;
             try {
-                const response = await fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        table: tableNumber, 
-                        menuItems: cartItems.map(i => `${i.name} x${i.qty}`).join(", "), 
-                        totalPrice: totalPrice, 
-                        slipImage: slipBase64, 
-                        cartData: cartItems 
-                    }) 
+                const file = document.getElementById('slip-input').files[0];
+                let base64 = ""; if(file) base64 = await toBase64(file);
+                
+                const menuString = cartItems.map(i => `${i.name} ${i.note ? '('+i.note+')' : ''} x${i.qty}`).join(", ");
+                const total = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
+
+                await fetch(SCRIPT_URL, {
+                    method: 'POST', body: JSON.stringify({
+                        table: tableNumber, menuItems: menuString, totalPrice: total, slipImage: base64, cartData: cartItems
+                    })
                 });
                 
-                const result = await response.json();
+                orderHistory.push({ time: new Date().toLocaleTimeString(), total: total, items: [...cartItems] });
+                localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
                 
-                if (result.result === "success") {
-                    showToast("ส่งออเดอร์เรียบร้อยครับ ✨", true);
-                    orderHistory.push({ id: Date.now(), time: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}), items: [...cartItems], total: totalPrice });
-                    localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
-                    
-                    cartItems = []; 
-                    updateCartUI(); 
-                    document.getElementById('slip-input').value = ""; 
-                    document.getElementById('payment-modal').classList.add('hidden');
-                    
-                    setTimeout(checkStatus, 2000); 
-                    setTimeout(loadMenu, 3000);
-                }
-            } catch (e) { 
-                showToast("ส่งไม่สำเร็จ กรุณาลองใหม่", false); 
-            } finally { 
-                btn.innerText = "แจ้งโอน"; 
-                btn.disabled = false; 
-            }
+                showToast("สั่งสำเร็จ!", true); cartItems=[]; updateCartUI(); 
+                document.getElementById('payment-modal').classList.add('hidden');
+                
+                // 🔥 Reset Status Close flag to show new order status
+                isStatusClosed = false;
+                checkStatus();
+            } catch(e) { showToast("ผิดพลาด ลองใหม่", false); }
+            finally { btn.innerText = "แจ้งโอนเงิน"; btn.disabled = false; }
         }
 
-        // --- History Logic ---
-        function getStatusHtml(status, time) {
-            if (!status || status === 'waiting') return '<span class="text-[10px] bg-amber-50 text-amber-600 px-2 py-1 rounded-full border border-amber-100 font-bold">รอยืนยัน</span>';
-            if (status === 'cooking') return `<span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded-full border border-blue-100 font-bold">${time ? time : 'กำลังปรุง'}</span>`;
-            if (status === 'completed') return '<span class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded-full border border-emerald-100 font-bold">เสร็จสิ้น</span>';
-            return '<span class="text-[10px] bg-stone-50 text-stone-400 px-2 py-1 rounded-full font-bold">สำเร็จ</span>';
+        // Utils
+        function showToast(m, s) { 
+            const t = document.getElementById('toast'); 
+            t.className = `fixed top-5 left-1/2 -translate-x-1/2 z-[150] px-6 py-3 rounded-2xl shadow-xl text-white font-bold transition-all duration-300 w-max max-w-[90%] flex items-center gap-3 ${s?'bg-emerald-500':'bg-red-500'}`;
+            document.getElementById('toast-msg').innerText = m; t.classList.remove('hidden');
+            setTimeout(()=>t.classList.add('hidden'), 4000);
         }
-
+        function closeToast() { document.getElementById('toast').classList.add('hidden'); }
+        function filterMenu(t) {
+            document.querySelectorAll('.filter-btn').forEach(b => { b.classList.remove('bg-emerald-600','text-white'); b.classList.add('bg-slate-100','text-slate-500'); });
+            event.target.classList.remove('bg-slate-100','text-slate-500'); event.target.classList.add('bg-emerald-600','text-white');
+            ['food','drink','dessert'].forEach(ID => document.getElementById('section-'+ID).style.display = (t==='all'||t===ID)?'block':'none');
+        }
+        function playNotification() { document.getElementById('success-sound').play().catch(()=>{}); showToast("อาหารเสร็จแล้ว! 🥘", true); document.getElementById('history-badge').classList.remove('hidden'); }
+        function toBase64(file) { return new Promise((r, j) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => r(reader.result); reader.onerror = j; }); }
         function openHistoryModal() {
-            document.getElementById('history-badge').classList.add('hidden'); const container = document.getElementById('history-container'); container.innerHTML = '';
-            if (orderHistory.length === 0) container.innerHTML = '<div class="text-center py-10 font-medium text-slate-300"><p>ไม่มีประวัติการสั่ง</p></div>';
-            else {
-                const reversedHistory = orderHistory.slice().reverse(); const reversedStatuses = serverOrderStatuses.slice().reverse();
-                reversedHistory.forEach((order, index) => {
-                    let itemsHtml = order.items.map(item => `<div class="flex justify-between text-xs text-slate-500"><span>${item.name} x${item.qty}</span><span>฿${(item.price * item.qty).toLocaleString()}</span></div>`).join('');
-                    let statusObj = reversedStatuses[index] || { status: 'completed', estTime: '' };
-                    container.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm mb-3 border border-slate-50"><div class="flex justify-between items-start mb-2"><div><span class="text-[10px] font-bold text-slate-300 block">${order.time}</span>${getStatusHtml(statusObj.status, statusObj.estTime)}</div><span class="text-lg font-bold text-stone-800">฿${order.total.toLocaleString()}</span></div><div class="bg-slate-50 p-2 rounded-xl">${itemsHtml}</div></div>`;
-                });
-            }
+            document.getElementById('history-badge').classList.add('hidden');
+            const c = document.getElementById('history-container'); c.innerHTML = '';
+            orderHistory.slice().reverse().forEach(o => {
+                c.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl mb-2"><div class="flex justify-between text-xs text-slate-400 mb-1"><span>${o.time}</span><span>฿${o.total}</span></div><div class="text-sm font-bold text-slate-700">${o.items.map(i=>i.name).join(', ')}</div></div>`;
+            });
             document.getElementById('history-modal').classList.remove('hidden');
         }
-
-        // --- Utility Functions ---
-        function filterMenu(type) {
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.toggle('bg-emerald-600', btn.dataset.type === type); btn.classList.toggle('text-white', btn.dataset.type === type);
-                btn.classList.toggle('bg-white', btn.dataset.type !== type); btn.classList.toggle('text-slate-500', btn.dataset.type !== type);
-            });
-            ['food', 'drink', 'dessert'].forEach(id => {
-                const el = document.getElementById('section-' + id);
-                if (type === 'all' || type === id) el.classList.remove('hidden'); else el.classList.add('hidden');
-            });
-        }
-
         function closeHistoryModal() { document.getElementById('history-modal').classList.add('hidden'); }
         function clearHistory() { if(confirm("ล้างประวัติทั้งหมด?")) { orderHistory = []; localStorage.removeItem('orderHistory'); openHistoryModal(); } }
-        function toBase64(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); }); }
         function startStatusCheck() { checkStatus(); setInterval(checkStatus, 5000); }
-        
-        function playNotification() {
-            const sound = document.getElementById('success-sound'); 
-            sound.play().catch(e => console.log("Sound blocked")); // ป้องกัน Error หยุดการทำงาน
-            if(navigator.vibrate) navigator.vibrate([300, 100, 300]);
-            document.getElementById('history-badge').classList.remove('hidden');
-        }
-        
-        function sendSystemNotification(title, body) {
-            if (Notification.permission === "granted") { try { new Notification(title, { body: body, icon: "https://cdn-icons-png.flaticon.com/512/7541/7541673.png" }); } catch(e) {} }
-        }
-        
-        function showToast(msg, isSuccess) {
-            const toast = document.getElementById('toast'); 
-            toast.className = `fixed top-5 left-1/2 -translate-x-1/2 z-[110] px-6 py-3 rounded-full shadow-xl text-white font-bold transition-all duration-300 w-max max-w-[90%] text-center ${isSuccess ? 'bg-emerald-500' : 'bg-red-500'}`;
-            document.getElementById('toast-msg').innerText = msg; 
-            toast.classList.remove('hidden'); 
-            setTimeout(() => toast.classList.add('hidden'), 3000);
-        }
-        
         async function downloadQRCode() {
             const imgSrc = document.getElementById('qr-image').src;
             try {
