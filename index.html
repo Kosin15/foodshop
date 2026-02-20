@@ -43,8 +43,7 @@
             <p class="text-slate-400 text-sm mb-4">จิ้มเบอร์โต๊ะเพื่อเริ่มสั่งอาหาร</p>
             
             <div class="flex-1 overflow-y-auto no-scrollbar">
-                <div class="table-grid" id="table-grid-container">
-                    </div>
+                <div class="table-grid" id="table-grid-container"></div>
             </div>
             
             <div class="mt-4 pt-4 border-t border-slate-100">
@@ -68,7 +67,7 @@
         </div>
         <div class="relative pl-2" id="timeline-container">
             <div class="timeline-line"></div>
-            </div>
+        </div>
     </div>
 
     <nav class="bg-emerald-600 text-white p-4 sticky top-0 z-50 shadow-lg flex justify-between items-center h-16">
@@ -163,9 +162,8 @@
         let tempSelectedTable = null;
         let isFirstLoad = true;
         let isStatusClosed = false; 
-        
-        // 🔥 ตัวแปรป้องกันการกดปุ่มสั่งอาหารซ้ำรัวๆ (Double Submit Prevention)
         let isSubmittingOrder = false;
+        let lastKnownRawStatus = "";
 
         function newSearchParams(search) { return new URLSearchParams(search); }
         let tableNumber = newSearchParams(window.location.search).get('table');
@@ -181,7 +179,7 @@
             loadMenu();
         });
 
-        // 1. Table Map Logic
+        // 1. Table Map
         function renderTableGrid() {
             const container = document.getElementById('table-grid-container');
             container.innerHTML = '';
@@ -207,25 +205,44 @@
             document.getElementById('table-select-modal').classList.add('hidden');
             const newUrl = window.location.pathname + '?table=' + tableNumber;
             window.history.pushState({path:newUrl},'',newUrl);
+            
+            isFirstLoad = true; // รีเซ็ตการเช็คสถานะ
             startStatusCheck();
         }
 
-        // 2. Timeline Status Logic
+        // 2. Timeline Status Logic (🔥 Fixed Auto-Popup Bug 🔥)
         function minimizeStatusBar() {
             document.getElementById('order-status-bar').classList.remove('translate-y-0');
             document.getElementById('order-status-bar').classList.add('translate-y-full');
-            document.getElementById('status-minimized').classList.remove('hidden');
+            
+            // รอให้แอนิเมชันเลื่อนลงจบก่อน ค่อยซ่อน
+            setTimeout(() => {
+                document.getElementById('order-status-bar').classList.add('hidden');
+                document.getElementById('status-minimized').classList.remove('hidden');
+            }, 400); 
         }
+
         function restoreStatusBar() {
-            document.getElementById('order-status-bar').classList.remove('hidden', 'translate-y-full');
-            document.getElementById('order-status-bar').classList.add('translate-y-0');
+            document.getElementById('order-status-bar').classList.remove('hidden');
             document.getElementById('status-minimized').classList.add('hidden');
             isStatusClosed = false;
+            
+            // ให้บราวเซอร์วาดกล่องก่อน ค่อยสั่งเลื่อนขึ้น
+            requestAnimationFrame(() => {
+                document.getElementById('order-status-bar').classList.remove('translate-y-full');
+                document.getElementById('order-status-bar').classList.add('translate-y-0');
+            });
         }
+
         function closeStatusBarForever() {
-            document.getElementById('order-status-bar').classList.add('hidden');
-            document.getElementById('status-minimized').classList.add('hidden');
+            document.getElementById('order-status-bar').classList.remove('translate-y-0');
+            document.getElementById('order-status-bar').classList.add('translate-y-full');
             isStatusClosed = true; 
+            
+            setTimeout(() => {
+                document.getElementById('order-status-bar').classList.add('hidden');
+                document.getElementById('status-minimized').classList.add('hidden');
+            }, 400);
         }
 
         function renderTimeline(status, time, orderTime) {
@@ -257,10 +274,6 @@
                     <div><p class="font-bold text-sm">เสร็จสิ้น</p><p class="text-xs text-slate-400">${status==='completed'?'พร้อมเสิร์ฟ':''}</p></div>
                 </div>
             `;
-            
-            if (!isStatusClosed) {
-                document.getElementById('order-status-bar').classList.remove('hidden', 'translate-y-full');
-            }
         }
 
         async function checkStatus() {
@@ -268,14 +281,36 @@
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=checkStatus&table=${tableNumber}`);
                 const data = await res.json();
+                
                 if(data.orders && data.orders.length > 0) {
                     serverOrderStatuses = data.orders;
                     const latest = data.orders[data.orders.length - 1];
-                    
-                    if(latest.status !== 'waiting' || isFirstLoad) {
-                        renderTimeline(latest.status, latest.estTime, latest.orderTime);
+                    const currentStatusKey = latest.status + (latest.updateTime || latest.orderTime); // สร้าง key เช็คสถานะ
+
+                    // วาด HTML ข้างในรอไว้ก่อนเสมอ
+                    renderTimeline(latest.status, latest.estTime, latest.orderTime);
+
+                    if (isFirstLoad) {
+                        // โหลดเว็บครั้งแรก
+                        if (latest.status === 'completed') {
+                            // ถ้าออเดอร์เก่าเสร็จไปแล้ว -> ซ่อนไปเลย (เปิดเฉพาะปุ่มลอย)
+                            document.getElementById('order-status-bar').classList.add('hidden', 'translate-y-full');
+                            document.getElementById('status-minimized').classList.remove('hidden');
+                        } else {
+                            // ถ้ากำลังรอกิน -> ให้เด้งขึ้นมา
+                            if(!isStatusClosed) restoreStatusBar();
+                        }
+                        lastKnownRawStatus = currentStatusKey;
+                    } else {
+                        // เช็คระหว่างการใช้งาน (ไม่ได้โหลดใหม่)
+                        if (currentStatusKey !== lastKnownRawStatus) {
+                            // ถ้าสถานะมี การเปลี่ยนแปลง (เปลี่ยนคนละค่ากับที่จำไว้) -> เด้งขึ้นมาแจ้งลูกค้า!
+                            if(!isStatusClosed) restoreStatusBar();
+                            lastKnownRawStatus = currentStatusKey;
+                        }
                     }
 
+                    // แจ้งเตือนกระดิ่ง/จุดแดง
                     const completed = data.orders.filter(o => o.status === 'completed').length;
                     const storedCompleted = parseInt(localStorage.getItem('completedCount') || 0);
                     
@@ -317,11 +352,9 @@
 
         function addToCart(name, price, img) {
             const existingItem = cartItems.find(item => item.name === name);
-            if (existingItem) {
-                existingItem.qty++;
-            } else {
-                cartItems.push({ name, price, img, qty: 1, note: '' });
-            }
+            if (existingItem) existingItem.qty++;
+            else cartItems.push({ name, price, img, qty: 1, note: '' });
+            
             updateCartUI(); 
             showToast(`เพิ่ม ${name} ลงตะกร้าแล้ว`, true);
         }
@@ -413,14 +446,13 @@
         
         function backToCart() { document.getElementById('payment-modal').classList.add('hidden'); document.getElementById('cart-modal').classList.remove('hidden'); }
 
-        // 🔥 ล็อกปุ่มป้องกันการส่งออเดอร์เบิ้ล (Double Submit Prevention)
         async function confirmOrder() {
-            if (isSubmittingOrder) return; // ถ้ากำลังส่งอยู่ ห้ามทำซ้ำ
+            if (isSubmittingOrder) return; 
             
             const btn = document.getElementById('btn-submit-order'); 
             const originalText = btn.innerText;
             
-            isSubmittingOrder = true; // ล็อกสถานะ
+            isSubmittingOrder = true; 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังส่งข้อมูล...'; 
             btn.disabled = true;
             btn.classList.add('opacity-70', 'cursor-not-allowed');
@@ -445,18 +477,20 @@
                 cartItems=[]; 
                 updateCartUI(); 
                 document.getElementById('payment-modal').classList.add('hidden');
-                document.getElementById('slip-input').value = ""; // เคลียร์ช่องอัปโหลดสลิป
+                document.getElementById('slip-input').value = ""; 
                 
                 isStatusClosed = false;
-                checkStatus();
+                
+                // รีเฟรชสถานะทันที เพื่อให้แท็บสถานะใหม่เด้งขึ้นมา
+                setTimeout(checkStatus, 1000); 
+
             } catch(e) { 
                 showToast("เกิดข้อผิดพลาด กรุณาลองใหม่", false); 
             } finally { 
-                // คืนค่าปุ่มให้กลับมาเป็นเหมือนเดิมเผื่อต้องกดใหม่
                 btn.innerHTML = originalText; 
                 btn.disabled = false; 
                 btn.classList.remove('opacity-70', 'cursor-not-allowed');
-                isSubmittingOrder = false; // ปลดล็อก
+                isSubmittingOrder = false; 
             }
         }
 
@@ -492,7 +526,13 @@
         
         function closeHistoryModal() { document.getElementById('history-modal').classList.add('hidden'); }
         function clearHistory() { if(confirm("ล้างประวัติทั้งหมด?")) { orderHistory = []; localStorage.removeItem('orderHistory'); openHistoryModal(); } }
-        function startStatusCheck() { checkStatus(); setInterval(checkStatus, 5000); }
+        
+        let statusInterval;
+        function startStatusCheck() { 
+            checkStatus(); 
+            if(statusInterval) clearInterval(statusInterval);
+            statusInterval = setInterval(checkStatus, 5000); 
+        }
     </script>
 </body>
 </html>
