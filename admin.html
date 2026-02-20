@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard Pro - น้องหนึ่ง🐰🤍</title>
+    <title>Admin Dashboard Pro - ร้านอาหารน้องหนึ่ง🐰🤍</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -81,7 +81,7 @@
             <div class="bg-emerald-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
                 <i class="fas fa-user-shield text-4xl text-emerald-500"></i>
             </div>
-            <h2 class="text-3xl font-bold mb-2 text-slate-800">น้องหนึ่ง🐰🤍</h2>
+            <h2 class="text-3xl font-bold mb-2 text-slate-800">ร้านอาหารน้องหนึ่ง🐰🤍</h2>
             <p class="text-slate-400 mb-8">ระบบจัดการร้านอาหาร</p>
             <input type="password" id="admin-pin" placeholder="รหัสผ่าน (1234)" class="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-2xl mb-4 text-center text-xl focus:border-emerald-500 focus:outline-none transition">
             <button onclick="checkLogin()" class="w-full bg-emerald-500 text-white py-4 rounded-2xl font-bold text-lg hover:bg-emerald-600 shadow-lg hover:shadow-emerald-200 transition transform active:scale-95">เข้าสู่ระบบ</button>
@@ -91,7 +91,7 @@
 
     <aside class="w-64 bg-white border-r hidden md:flex flex-col z-20">
         <div class="p-6 border-b">
-            <h1 class="text-2xl font-bold text-emerald-600"><i class="fas fa-utensils mr-2"></i>น้องหนึ่ง🐰🤍</h1>
+            <h1 class="text-2xl font-bold text-emerald-600"><i class="fas fa-utensils mr-2"></i>ร้านอาหารน้องหนึ่ง🐰🤍</h1>
         </div>
         <nav class="flex-1 p-4 space-y-2">
             <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full text-left p-3 rounded-xl hover:bg-emerald-50 transition flex items-center text-slate-600"><i class="fas fa-chart-line w-8"></i> สรุปยอดขาย</button>
@@ -114,68 +114,97 @@
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header class="bg-white border-b p-4 md:hidden flex justify-between items-center z-10">
-            <h1 class="font-bold text-emerald-600 text-lg">น้องหนึ่ง🐰🤍</h1>
+            <h1 class="font-bold text-emerald-600 text-lg">ร้านอาหารน้องหนึ่ง🐰🤍</h1>
             <button onclick="logout()" class="text-red-500"><i class="fas fa-sign-out-alt"></i></button>
         </header>
 
         <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 bg-slate-50" id="main-container">
             
             <div id="view-dashboard" class="space-y-6 hidden slide-up">
-                <div class="flex justify-between items-end">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-800">สรุปยอดขาย</h2>
-                        <p class="text-slate-500 text-sm">ภาพรวมรายได้ของร้าน</p>
+                        <p class="text-slate-500 text-sm">ภาพรวมรายได้และการคาดการณ์</p>
                     </div>
-                    <select id="dash-period" class="bg-white border p-2 rounded-lg text-sm text-slate-600 font-bold focus:border-emerald-500 outline-none" onchange="refreshDashboard()">
-                        <option value="today">วันนี้</option>
-                        <option value="month">เดือนนี้</option>
-                        <option value="quarter">ไตรมาสนี้</option>
-                        <option value="year">ปีนี้</option>
-                    </select>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <div id="custom-date-wrap" class="hidden">
+                            <input type="date" id="dash-custom-date" class="bg-white border-2 border-emerald-100 p-2 rounded-xl text-sm text-slate-700 font-bold focus:border-emerald-500 outline-none shadow-sm cursor-pointer" onchange="refreshDashboard()">
+                        </div>
+                        <select id="dash-period" class="bg-white border-2 border-emerald-100 p-2 rounded-xl text-sm text-slate-700 font-bold focus:border-emerald-500 outline-none shadow-sm cursor-pointer w-full md:w-auto" onchange="handlePeriodChange()">
+                            <option value="today">วันนี้ (รายชั่วโมง)</option>
+                            <option value="yesterday">เมื่อวาน (ยอดขายย้อนหลัง)</option>
+                            <option value="custom">📅 เลือกวันที่เอง...</option>
+                            <option value="week">สัปดาห์นี้ (รายวัน)</option>
+                            <option value="month">เดือนนี้ (รายวัน)</option>
+                            <option value="quarter">ไตรมาสนี้ (รายเดือน)</option>
+                            <option value="year">ปีนี้ (รายเดือน)</option>
+                        </select>
+                    </div>
                 </div>
+                
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <p class="text-slate-400 text-xs font-bold uppercase">ยอดขายรวม</p>
-                        <h3 class="text-3xl font-bold text-emerald-500 mt-2">฿<span id="stat-total">0</span></h3>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 text-emerald-100 opacity-50"><i class="fas fa-wallet text-6xl"></i></div>
+                        <p class="text-slate-400 text-xs font-bold uppercase relative z-10">ยอดขายรวม</p>
+                        <h3 class="text-3xl font-bold text-emerald-500 mt-2 relative z-10">฿<span id="stat-total">0</span></h3>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <p class="text-slate-400 text-xs font-bold uppercase">จำนวนออเดอร์</p>
-                        <h3 class="text-3xl font-bold text-blue-500 mt-2"><span id="stat-count">0</span> <span class="text-sm text-slate-400 font-normal">รายการ</span></h3>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 text-blue-100 opacity-50"><i class="fas fa-receipt text-6xl"></i></div>
+                        <p class="text-slate-400 text-xs font-bold uppercase relative z-10">จำนวนออเดอร์</p>
+                        <h3 class="text-3xl font-bold text-blue-500 mt-2 relative z-10"><span id="stat-count">0</span> <span class="text-sm text-slate-400 font-normal">รายการ</span></h3>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <p class="text-slate-400 text-xs font-bold uppercase">เฉลี่ยต่อออเดอร์</p>
-                        <h3 class="text-3xl font-bold text-amber-500 mt-2">฿<span id="stat-avg">0</span></h3>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 text-amber-100 opacity-50"><i class="fas fa-chart-pie text-6xl"></i></div>
+                        <p class="text-slate-400 text-xs font-bold uppercase relative z-10">เฉลี่ยต่อออเดอร์</p>
+                        <h3 class="text-3xl font-bold text-amber-500 mt-2 relative z-10">฿<span id="stat-avg">0</span></h3>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border">
-                    <h4 class="font-bold mb-4 text-slate-700">📈 แนวโน้มยอดขาย</h4>
-                    <canvas id="chart-sales" style="max-height: 300px;"></canvas>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h4 class="font-bold mb-4 text-slate-700 flex items-center gap-2">
+                        <i class="fas fa-chart-area text-emerald-500"></i> แนวโน้มยอดขาย & คาดการณ์ (Forecast)
+                    </h4>
+                    <div class="relative h-[350px] w-full">
+                        <canvas id="chart-sales"></canvas>
+                    </div>
                 </div>
             </div>
 
             <div id="view-orders" class="space-y-6 hidden slide-up">
-                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">รายการสั่งซื้อ</h2>
                         <p class="text-xs text-slate-400">จัดการออเดอร์และสถานะ</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="refreshOrders()" class="bg-emerald-100 text-emerald-600 p-2 rounded-lg hover:bg-emerald-200 transition"><i class="fas fa-sync-alt"></i> รีเฟรช</button>
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <div id="orders-custom-date-wrap" class="hidden">
+                            <input type="date" id="orders-custom-date" class="bg-white border-2 border-emerald-100 p-2 rounded-xl text-sm text-slate-700 font-bold focus:border-emerald-500 outline-none shadow-sm cursor-pointer" onchange="refreshOrders()">
+                        </div>
+                        <select id="orders-period" class="bg-white border-2 border-emerald-100 p-2 rounded-xl text-sm text-slate-700 font-bold focus:border-emerald-500 outline-none shadow-sm cursor-pointer flex-1 md:flex-none" onchange="handleOrdersPeriodChange()">
+                            <option value="today">วันนี้</option>
+                            <option value="yesterday">เมื่อวาน</option>
+                            <option value="custom">📅 เลือกวันที่เอง...</option>
+                            <option value="week">สัปดาห์นี้</option>
+                            <option value="month">เดือนนี้</option>
+                            <option value="quarter">ไตรมาสนี้</option>
+                            <option value="year">ปีนี้</option>
+                            <option value="all">ทั้งหมด (All)</option>
+                        </select>
+                        <button onclick="refreshOrders()" class="bg-emerald-100 text-emerald-600 p-2 rounded-xl hover:bg-emerald-200 transition font-bold text-sm px-4"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
                 <div id="orders-list" class="space-y-4"></div>
             </div>
 
             <div id="view-stock" class="space-y-6 hidden slide-up">
-                <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border">
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                     <h2 class="text-xl font-bold text-slate-800">จัดการสต๊อก</h2>
                     <button onclick="openForm()" class="bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-emerald-600 transition"><i class="fas fa-plus mr-1"></i> เพิ่มเมนู</button>
                 </div>
                 <div class="flex space-x-2 overflow-x-auto no-scrollbar pb-2">
-                    <button onclick="filterStock('all')" class="stock-filter active bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-bold whitespace-nowrap transition">ทั้งหมด</button>
-                    <button onclick="filterStock('food')" class="stock-filter bg-white text-slate-600 border px-4 py-1 rounded-full text-sm font-bold whitespace-nowrap transition">อาหาร</button>
-                    <button onclick="filterStock('drink')" class="stock-filter bg-white text-slate-600 border px-4 py-1 rounded-full text-sm font-bold whitespace-nowrap transition">เครื่องดื่ม</button>
-                    <button onclick="filterStock('dessert')" class="stock-filter bg-white text-slate-600 border px-4 py-1 rounded-full text-sm font-bold whitespace-nowrap transition">ของหวาน</button>
+                    <button onclick="filterStock('all')" class="stock-filter active bg-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap transition">ทั้งหมด</button>
+                    <button onclick="filterStock('food')" class="stock-filter bg-white text-slate-600 border px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap transition shadow-sm">อาหาร</button>
+                    <button onclick="filterStock('drink')" class="stock-filter bg-white text-slate-600 border px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap transition shadow-sm">เครื่องดื่ม</button>
+                    <button onclick="filterStock('dessert')" class="stock-filter bg-white text-slate-600 border px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap transition shadow-sm">ของหวาน</button>
                 </div>
                 <div id="stock-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
             </div>
@@ -189,58 +218,59 @@
         </div>
     </main>
 
-    <div id="product-form" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-2xl p-6 shadow-2xl relative animate-fade-in max-h-[90vh] overflow-y-auto">
+    <div id="product-form" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl relative animate-fade-in max-h-[90vh] overflow-y-auto">
             <h3 id="form-title" class="text-xl font-bold mb-4 text-slate-800">เพิ่ม/แก้ไข สินค้า</h3>
             <input type="hidden" id="edit-old-name">
             <div class="space-y-3">
-                <input type="text" id="menu-name" placeholder="ชื่อสินค้า" class="w-full p-3 border rounded-xl bg-slate-50 focus:bg-white transition">
+                <input type="text" id="menu-name" placeholder="ชื่อสินค้า" class="w-full p-3 border rounded-xl bg-slate-50 focus:bg-white transition focus:border-emerald-500 outline-none">
                 <div class="flex gap-2">
-                    <input type="number" id="menu-price" placeholder="ราคา" class="w-1/2 p-3 border rounded-xl bg-slate-50 focus:bg-white transition">
-                    <select id="menu-type" class="w-1/2 p-3 border rounded-xl bg-white text-slate-600">
+                    <input type="number" id="menu-price" placeholder="ราคา" class="w-1/2 p-3 border rounded-xl bg-slate-50 focus:bg-white transition focus:border-emerald-500 outline-none">
+                    <select id="menu-type" class="w-1/2 p-3 border rounded-xl bg-slate-50 text-slate-600 focus:border-emerald-500 outline-none">
                         <option value="food">อาหาร</option>
                         <option value="drink">เครื่องดื่ม</option>
                         <option value="dessert">ของหวาน</option>
                     </select>
                 </div>
                 
-                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
                     <label class="flex items-center justify-between cursor-pointer mb-2">
-                        <span class="font-bold text-emerald-800 text-sm">จำนวนสต๊อก</span>
+                        <span class="font-bold text-emerald-800 text-sm">การจัดการสต๊อก</span>
                         <div class="flex items-center">
-                            <input type="checkbox" id="menu-unlimited" class="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-500 mr-2" onchange="toggleStockInput()">
-                            <span class="text-sm text-slate-600">มีไม่จำกัด</span>
+                            <input type="checkbox" id="menu-unlimited" class="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-500 mr-2 cursor-pointer" onchange="toggleStockInput()">
+                            <span class="text-sm text-slate-600 font-medium">มีไม่จำกัด (∞)</span>
                         </div>
                     </label>
-                    <input type="number" id="menu-stock" placeholder="จำนวน (ชิ้น/จาน)" class="w-full p-3 border rounded-xl bg-white transition-all">
+                    <input type="number" id="menu-stock" placeholder="ใส่จำนวนที่มี (ชิ้น/จาน)" class="w-full p-3 border rounded-xl bg-white transition-all focus:border-emerald-500 outline-none">
                 </div>
 
-                <textarea id="menu-desc" placeholder="รายละเอียด" class="w-full p-3 border rounded-xl bg-slate-50 focus:bg-white transition" rows="2"></textarea>
-                <div class="border-dashed border-2 border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-50 relative transition">
-                    <input type="file" id="menu-image" class="absolute inset-0 opacity-0 cursor-pointer">
-                    <i class="fas fa-image text-slate-400 text-2xl"></i>
-                    <p class="text-xs text-slate-400 mt-1">คลิกเพื่ออัปโหลดรูปภาพ</p>
+                <textarea id="menu-desc" placeholder="รายละเอียด (ไม่ใส่ก็ได้)" class="w-full p-3 border rounded-xl bg-slate-50 focus:bg-white transition focus:border-emerald-500 outline-none" rows="2"></textarea>
+                <div class="border-dashed border-2 border-slate-300 rounded-xl p-6 text-center cursor-pointer hover:bg-slate-50 transition relative overflow-hidden group">
+                    <input type="file" id="menu-image" class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                    <i class="fas fa-cloud-upload-alt text-emerald-400 text-3xl mb-2 group-hover:scale-110 transition"></i>
+                    <p class="text-sm font-bold text-slate-600">อัปโหลดรูปภาพใหม่</p>
+                    <p class="text-xs text-slate-400 mt-1">แตะที่นี่เพื่อเลือกรูป</p>
                 </div>
             </div>
             <div class="flex gap-3 mt-6">
                 <button onclick="closeForm()" class="flex-1 py-3 bg-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-300 transition">ยกเลิก</button>
-                <button onclick="saveProduct()" class="flex-1 py-3 bg-emerald-500 rounded-xl font-bold text-white hover:bg-emerald-600 transition">บันทึก</button>
+                <button onclick="saveProduct()" class="flex-1 py-3 bg-emerald-500 rounded-xl font-bold text-white hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition">บันทึก</button>
             </div>
         </div>
     </div>
 
-    <div id="time-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-6 text-center shadow-xl">
-            <h3 class="text-lg font-bold mb-4 text-slate-800">⏳ เลือกเวลาปรุงอาหาร</h3>
-            <div class="grid grid-cols-3 gap-3 mb-4">
-                <button onclick="selectTime('10 นาที')" class="p-2 border rounded-lg hover:bg-emerald-100 transition text-sm">10 นาที</button>
-                <button onclick="selectTime('15 นาที')" class="p-2 border rounded-lg hover:bg-emerald-100 transition text-sm">15 นาที</button>
-                <button onclick="selectTime('20 นาที')" class="p-2 border rounded-lg hover:bg-emerald-100 transition text-sm">20 นาที</button>
-                <button onclick="selectTime('30 นาที')" class="p-2 border rounded-lg hover:bg-emerald-100 transition text-sm">30 นาที</button>
-                <button onclick="selectTime('45 นาที')" class="p-2 border rounded-lg hover:bg-emerald-100 transition text-sm">45 นาที</button>
-                <button onclick="selectTime('1 ชม.')" class="p-2 border rounded-lg hover:bg-emerald-100 transition text-sm">1 ชม.</button>
+    <div id="time-modal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl">
+            <h3 class="text-lg font-bold mb-4 text-slate-800">⏳ แจ้งเวลาปรุงอาหารให้ลูกค้า</h3>
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <button onclick="selectTime('10 นาที')" class="p-3 border-2 border-slate-100 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition text-sm font-bold text-slate-600">10 นาที</button>
+                <button onclick="selectTime('15 นาที')" class="p-3 border-2 border-slate-100 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition text-sm font-bold text-slate-600">15 นาที</button>
+                <button onclick="selectTime('20 นาที')" class="p-3 border-2 border-slate-100 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition text-sm font-bold text-slate-600">20 นาที</button>
+                <button onclick="selectTime('30 นาที')" class="p-3 border-2 border-slate-100 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition text-sm font-bold text-slate-600">30 นาที</button>
+                <button onclick="selectTime('45 นาที')" class="p-3 border-2 border-slate-100 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition text-sm font-bold text-slate-600">45 นาที</button>
+                <button onclick="selectTime('1 ชม.')" class="p-3 border-2 border-slate-100 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition text-sm font-bold text-slate-600">1 ชม.</button>
             </div>
-            <button onclick="document.getElementById('time-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-sm">ยกเลิก</button>
+            <button onclick="document.getElementById('time-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-sm font-bold underline">ยกเลิก</button>
         </div>
     </div>
 
@@ -258,14 +288,16 @@
 
         function unlockAudioContext() {
             const audio = document.getElementById('notif-sound');
-            audio.play().then(() => {
-                audio.pause();
-                audio.currentTime = 0;
-            }).catch(e => console.log("Unlock failed"));
+            audio.play().then(() => { audio.pause(); audio.currentTime = 0; }).catch(e => {});
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('click', unlockAudioContext, { once: true });
+            
+            // ตั้งค่า Date Picker ให้เป็นค่าเริ่มต้นวันนี้
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('dash-custom-date').value = todayStr;
+            document.getElementById('orders-custom-date').value = todayStr;
 
             if (localStorage.getItem('admin_logged_in') === 'true') {
                 document.getElementById('login-section').classList.add('hidden');
@@ -296,7 +328,7 @@
                 }
                 lastOrderCount = currentCount;
                 if(currentTab === 'orders') allOrders = data; 
-            } catch (err) { console.log("Polling error:", err); }
+            } catch (err) {}
         }
 
         function playAlarm() {
@@ -357,13 +389,21 @@
             else if (tabName === 'stock') refreshStock();
         }
 
+        // --- DASHBOARD LOGIC ---
+        function handlePeriodChange() {
+            const period = document.getElementById('dash-period').value;
+            const customDateWrap = document.getElementById('custom-date-wrap');
+            if (period === 'custom') customDateWrap.classList.remove('hidden');
+            else customDateWrap.classList.add('hidden');
+            refreshDashboard();
+        }
+
         async function refreshDashboard() {
             toggleLoading(true);
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getOrders`);
                 const data = await res.json();
-                allOrders = data.slice(1); // ตัด Header ออก
-                lastOrderCount = data.length - 1;
+                allOrders = data.slice(1); 
                 renderCharts();
             } catch(e) {}
             toggleLoading(false);
@@ -372,51 +412,160 @@
         function renderCharts() {
             const period = document.getElementById('dash-period').value;
             const now = new Date();
-            let filtered = [];
-            
-            // Filter Logic
-            filtered = allOrders.filter(row => {
-                const d = new Date(row[0]);
-                if (period === 'today') return d.toDateString() === now.toDateString();
-                if (period === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-                if (period === 'year') return d.getFullYear() === now.getFullYear();
-                if (period === 'quarter') {
-                    const q = Math.floor((now.getMonth() + 3) / 3);
+            const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+            let customDate = new Date();
+            if (period === 'custom') {
+                const cdVal = document.getElementById('dash-custom-date').value;
+                if(cdVal) customDate = new Date(cdVal);
+            }
+
+            let labels = [];
+            let actualData = [];
+            let predictData = [];
+            let dataMap = {};
+            let filteredOrders = [];
+
+            if (period === 'today' || period === 'yesterday' || period === 'custom') {
+                labels = Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}:00`);
+                labels.forEach(l => dataMap[l] = 0);
+                
+                let targetDateStr = '';
+                if (period === 'today') targetDateStr = now.toDateString();
+                else if (period === 'yesterday') targetDateStr = yesterday.toDateString();
+                else if (period === 'custom') targetDateStr = customDate.toDateString();
+
+                filteredOrders = allOrders.filter(r => new Date(r[0]).toDateString() === targetDateStr);
+                filteredOrders.forEach(r => {
+                    let h = new Date(r[0]).getHours();
+                    dataMap[`${String(h).padStart(2, '0')}:00`] += parseInt(r[3]) || 0;
+                });
+            } 
+            else if (period === 'week') {
+                labels = ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.'];
+                labels.forEach(l => dataMap[l] = 0);
+                
+                const currentDay = now.getDay() === 0 ? 7 : now.getDay(); 
+                const monday = new Date(now); 
+                monday.setDate(now.getDate() - currentDay + 1);
+                monday.setHours(0,0,0,0);
+                
+                filteredOrders = allOrders.filter(r => new Date(r[0]) >= monday && new Date(r[0]).getTime() <= now.getTime() + 86400000);
+                filteredOrders.forEach(r => {
+                    let dayIdx = new Date(r[0]).getDay();
+                    let dayName = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'][dayIdx];
+                    dataMap[dayName] += parseInt(r[3]) || 0;
+                });
+            }
+            else if (period === 'month') {
+                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                labels = Array.from({length: daysInMonth}, (_, i) => `${i + 1}`);
+                labels.forEach(l => dataMap[l] = 0);
+                filteredOrders = allOrders.filter(r => new Date(r[0]).getMonth() === now.getMonth() && new Date(r[0]).getFullYear() === now.getFullYear());
+                filteredOrders.forEach(r => {
+                    let d = new Date(r[0]).getDate();
+                    dataMap[`${d}`] += parseInt(r[3]) || 0;
+                });
+            } 
+            else if (period === 'quarter') {
+                const q = Math.floor((now.getMonth() + 3) / 3);
+                const qStartMonth = (q - 1) * 3; 
+                const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+                labels = [monthNames[qStartMonth], monthNames[qStartMonth+1], monthNames[qStartMonth+2]];
+                labels.forEach(l => dataMap[l] = 0);
+                
+                filteredOrders = allOrders.filter(r => {
+                    const d = new Date(r[0]);
                     const rowQ = Math.floor((d.getMonth() + 3) / 3);
                     return q === rowQ && d.getFullYear() === now.getFullYear();
-                }
-                return true;
-            });
+                });
+                filteredOrders.forEach(r => {
+                    let m = new Date(r[0]).getMonth();
+                    dataMap[monthNames[m]] += parseInt(r[3]) || 0;
+                });
+            }
+            else if (period === 'year') {
+                labels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+                labels.forEach(l => dataMap[l] = 0);
+                filteredOrders = allOrders.filter(r => new Date(r[0]).getFullYear() === now.getFullYear());
+                filteredOrders.forEach(r => {
+                    let m = new Date(r[0]).getMonth();
+                    dataMap[labels[m]] += parseInt(r[3]) || 0;
+                });
+            }
 
-            // Stats Calculation
-            const total = filtered.reduce((sum, r) => sum + (parseInt(r[3])||0), 0);
-            const count = filtered.length;
+            let currentLabelIndex = -1;
+            if (period === 'today') currentLabelIndex = now.getHours();
+            else if (period === 'yesterday') currentLabelIndex = 23; 
+            else if (period === 'custom') {
+                customDate.setHours(0,0,0,0);
+                const todayZero = new Date(now); todayZero.setHours(0,0,0,0);
+                if (customDate.getTime() < todayZero.getTime()) currentLabelIndex = 23; 
+                else if (customDate.getTime() === todayZero.getTime()) currentLabelIndex = now.getHours(); 
+                else currentLabelIndex = -1; 
+            }
+            else if (period === 'week') currentLabelIndex = (now.getDay() === 0 ? 7 : now.getDay()) - 1;
+            else if (period === 'month') currentLabelIndex = now.getDate() - 1;
+            else if (period === 'quarter') {
+                const qStartMonth = (Math.floor((now.getMonth() + 3) / 3) - 1) * 3;
+                currentLabelIndex = now.getMonth() - qStartMonth;
+            }
+            else if (period === 'year') currentLabelIndex = now.getMonth();
+
+            let totalSalesSoFar = 0;
+            let countUnits = currentLabelIndex + 1; 
+            
+            for (let i = 0; i <= currentLabelIndex; i++) {
+                if(dataMap[labels[i]]) totalSalesSoFar += dataMap[labels[i]];
+            }
+            
+            let avgSales = countUnits > 0 ? Math.round(totalSalesSoFar / countUnits) : 0;
+
+            for (let i = 0; i < labels.length; i++) {
+                if (i <= currentLabelIndex) {
+                    actualData.push(dataMap[labels[i]]); 
+                    if (i === currentLabelIndex && currentLabelIndex < labels.length - 1) predictData.push(dataMap[labels[i]]);
+                    else predictData.push(null);
+                } else {
+                    actualData.push(null); 
+                    predictData.push(avgSales); 
+                }
+            }
+
+            const total = filteredOrders.reduce((sum, r) => sum + (parseInt(r[3])||0), 0);
+            const count = filteredOrders.length;
             const avg = count > 0 ? Math.round(total / count) : 0;
 
             document.getElementById('stat-total').innerText = total.toLocaleString();
             document.getElementById('stat-count').innerText = count;
             document.getElementById('stat-avg').innerText = avg.toLocaleString();
 
-            // Chart Data Prep
-            const labels = filtered.map(r => new Date(r[0]).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}));
-            const data = filtered.map(r => parseInt(r[3])||0);
-
             if (chartSales) chartSales.destroy();
-            chartSales = new Chart(document.getElementById('chart-sales'), {
+            const ctx = document.getElementById('chart-sales').getContext('2d');
+            chartSales = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'ยอดขาย (บาท)',
-                        data: data,
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
+                    datasets: [
+                        { label: 'ยอดขายจริง (Actual)', data: actualData, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#10b981', pointRadius: 4 },
+                        { label: 'แนวโน้มคาดการณ์ (Forecast)', data: predictData, borderColor: '#f59e0b', borderWidth: 2, borderDash: [5, 5], backgroundColor: 'transparent', fill: false, tension: 0.4, pointBackgroundColor: '#f59e0b', pointRadius: 0 }
+                    ]
                 },
-                options: { responsive: true, plugins: { legend: {display: false} } }
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { mode: 'index', intersect: false } },
+                    scales: { y: { beginAtZero: true, grid: { borderDash: [2, 4] } }, x: { grid: { display: false } } },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                }
             });
+        }
+
+        // --- ORDERS LOGIC ---
+        function handleOrdersPeriodChange() {
+            const period = document.getElementById('orders-period').value;
+            const customDateWrap = document.getElementById('orders-custom-date-wrap');
+            if (period === 'custom') customDateWrap.classList.remove('hidden');
+            else customDateWrap.classList.add('hidden');
+            refreshOrders();
         }
 
         async function refreshOrders() {
@@ -424,7 +573,7 @@
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getOrders`);
                 const data = await res.json();
-                allOrders = data; // รวม Header
+                allOrders = data; 
                 lastOrderCount = allOrders.length - 1;
                 renderOrders();
             } catch(e) {}
@@ -436,11 +585,44 @@
             container.innerHTML = '';
             let hasOrder = false;
 
-            // Loop ย้อนกลับเพื่อโชว์ออเดอร์ล่าสุดก่อน (ไม่รวม Header index 0)
+            const period = document.getElementById('orders-period').value;
+            const now = new Date();
+            const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+            let customDate = new Date();
+            
+            if (period === 'custom') {
+                const cdVal = document.getElementById('orders-custom-date').value;
+                if(cdVal) customDate = new Date(cdVal);
+            }
+
             for (let i = allOrders.length - 1; i >= 1; i--) {
                 const row = allOrders[i];
-                const originalIndex = i - 1; // Index สำหรับอ้างอิงตอน update
+                const originalIndex = i - 1; 
                 
+                const d = new Date(row[0]);
+                let isMatch = false;
+
+                if (period === 'all') isMatch = true;
+                else if (period === 'today') isMatch = d.toDateString() === now.toDateString();
+                else if (period === 'yesterday') isMatch = d.toDateString() === yesterday.toDateString();
+                else if (period === 'custom') isMatch = d.toDateString() === customDate.toDateString();
+                else if (period === 'week') {
+                    const currentDay = now.getDay() === 0 ? 7 : now.getDay(); 
+                    const monday = new Date(now); 
+                    monday.setDate(now.getDate() - currentDay + 1);
+                    monday.setHours(0,0,0,0);
+                    isMatch = d >= monday && d.getTime() <= now.getTime() + 86400000;
+                }
+                else if (period === 'month') isMatch = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                else if (period === 'quarter') {
+                    const q = Math.floor((now.getMonth() + 3) / 3);
+                    const rowQ = Math.floor((d.getMonth() + 3) / 3);
+                    isMatch = q === rowQ && d.getFullYear() === now.getFullYear();
+                }
+                else if (period === 'year') isMatch = d.getFullYear() === now.getFullYear();
+
+                if (!isMatch) continue;
+
                 hasOrder = true;
                 const status = row[5] || 'waiting';
                 const time = row[6] || '';
@@ -457,9 +639,8 @@
                     action = `<span class="text-emerald-500 text-sm font-bold"><i class="fas fa-check"></i> เรียบร้อย</span>`;
                 }
 
-                // ปุ่มดูสลิป
                 let slipBtn = (slipUrl && slipUrl.includes('http')) 
-                    ? `<button onclick="viewSlip('${slipUrl}')" class="text-blue-500 text-xs ml-2 bg-blue-50 px-2 py-1 rounded border border-blue-100 font-bold hover:bg-blue-100 transition"><i class="fas fa-receipt mr-1"></i> ดูสลิป</button>` 
+                    ? `<button onclick="viewSlip('${slipUrl}')" class="text-blue-500 text-xs ml-2 bg-blue-50 px-2 py-1 rounded border border-blue-100 font-bold hover:bg-blue-200 transition"><i class="fas fa-receipt mr-1"></i> ดูสลิป</button>` 
                     : '<span class="text-slate-300 text-xs ml-2"><i class="fas fa-times-circle"></i> ไม่มีสลิป</span>';
 
                 const html = `
@@ -479,15 +660,15 @@
                 container.innerHTML += html;
             }
 
-            if (!hasOrder) container.innerHTML = `<div class="text-center py-10 text-slate-400">ไม่มีออเดอร์</div>`;
+            if (!hasOrder) container.innerHTML = `<div class="text-center py-10 text-slate-400">ยังไม่มีออเดอร์ในระยะเวลานี้</div>`;
         }
 
-        // 🔥 ฟังก์ชันดูสลิป
         function viewSlip(url) {
             document.getElementById('modal-img-src').src = url;
             document.getElementById('image-modal').classList.remove('hidden');
         }
 
+        // --- STOCK LOGIC ---
         async function refreshStock() {
             toggleLoading(true);
             try {
@@ -510,7 +691,6 @@
             renderStock(type);
         }
 
-        // Render Stock Cards
         function renderStock(type = 'all') {
             const container = document.getElementById('stock-grid');
             container.innerHTML = '';
@@ -573,10 +753,7 @@
             }
 
             try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "toggleStock", name: name, status: newStatus })
-                });
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "toggleStock", name: name, status: newStatus }) });
             } catch(e) {
                 alert("บันทึกสถานะไม่สำเร็จ");
                 checkbox.checked = !newStatus;
