@@ -16,12 +16,10 @@
         .modal-enter { animation: slideUpModal 0.3s ease-out forwards; }
         @keyframes slideUpModal { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        /* Table Map Grid */
         .table-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .table-btn { aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f1f5f9; border: 2px solid #e2e8f0; color: #64748b; font-weight: bold; transition: all 0.2s; }
         .table-btn.selected { background: #10b981; border-color: #059669; color: white; transform: scale(1.05); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
 
-        /* Timeline Styles */
         .timeline-line { position: absolute; left: 15px; top: 10px; bottom: 10px; width: 2px; background: #e2e8f0; z-index: 0; }
         .timeline-item { position: relative; z-index: 1; display: flex; align-items: flex-start; margin-bottom: 20px; }
         .timeline-dot { width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 2px solid #cbd5e1; display: flex; align-items: center; justify-content: center; margin-right: 15px; flex-shrink: 0; transition: all 0.3s; }
@@ -114,7 +112,9 @@
                 <h3 class="text-2xl font-bold">ตะกร้าของฉัน</h3>
                 <button onclick="closeCartModal()" class="w-8 h-8 bg-slate-100 rounded-full hover:bg-slate-200 transition"><i class="fas fa-times"></i></button>
             </div>
+            
             <div id="cart-items-container" class="flex-1 overflow-y-auto space-y-4 pr-1"></div>
+            
             <div class="mt-4 pt-4 border-t">
                 <div class="flex justify-between items-center mb-4">
                     <span class="text-slate-500 font-bold">ยอดสุทธิ</span>
@@ -125,16 +125,38 @@
         </div>
     </div>
 
+    <div id="payment-method-modal" class="fixed inset-0 bg-black/60 hidden z-[65] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 text-center shadow-2xl relative">
+            <button onclick="backToCartFromMethod()" class="absolute top-4 right-4 text-slate-400 hover:bg-slate-100 w-8 h-8 rounded-full transition"><i class="fas fa-times"></i></button>
+            
+            <h3 class="text-xl font-bold mb-6 text-slate-800">เลือกวิธีชำระเงิน</h3>
+            
+            <div class="space-y-4">
+                <button onclick="selectPaymentMethod('promptpay')" class="w-full bg-blue-50 border-2 border-blue-200 text-blue-700 py-4 rounded-2xl font-bold text-lg hover:bg-blue-100 transition flex items-center justify-center gap-3 active:scale-95">
+                    <i class="fas fa-qrcode text-2xl"></i> สแกนจ่าย (PromptPay)
+                </button>
+                
+                <button id="btn-cash-order" onclick="selectPaymentMethod('cash')" class="w-full bg-emerald-50 border-2 border-emerald-200 text-emerald-700 py-4 rounded-2xl font-bold text-lg hover:bg-emerald-100 transition flex items-center justify-center gap-3 active:scale-95">
+                    <i class="fas fa-money-bill-wave text-2xl"></i> จ่ายเงินสด
+                </button>
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-slate-100">
+                <p class="text-slate-400 text-sm font-bold">ยอดที่ต้องชำระ: <span class="text-2xl text-slate-800 ml-1">฿<span id="method-total">0</span></span></p>
+            </div>
+        </div>
+    </div>
+
     <div id="payment-modal" class="fixed inset-0 bg-black/60 hidden z-[70] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl w-full max-w-sm p-6 text-center shadow-2xl relative">
-            <button onclick="backToCart()" class="absolute top-4 right-4 text-slate-400 hover:bg-slate-100 w-8 h-8 rounded-full"><i class="fas fa-times"></i></button>
-            <h3 class="text-xl font-bold mb-4">ชำระเงิน</h3>
+            <button onclick="backToMethod()" class="absolute top-4 right-4 text-slate-400 hover:bg-slate-100 w-8 h-8 rounded-full"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold mb-4">ชำระเงิน (โอน)</h3>
             <div class="bg-slate-50 p-4 rounded-xl border-2 border-dashed border-slate-200 mb-4">
                 <img id="qr-image" src="https://placehold.co/200x200?text=Generating+QR..." class="w-48 h-48 mx-auto rounded-lg mb-2 bg-white">
                 <p class="text-xs text-slate-400">PromptPay</p>
             </div>
             <div class="mb-4 text-left">
-                <label class="text-xs font-bold text-slate-500 mb-1 block">แนบสลิป (ถ้ามี)</label>
+                <label class="text-xs font-bold text-slate-500 mb-1 block">แนบสลิป (บังคับ)</label>
                 <input type="file" id="slip-input" accept="image/*" class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 border rounded-lg p-1 cursor-pointer">
             </div>
             <div class="text-3xl font-bold text-emerald-600 mb-6">฿<span id="pay-total">0</span></div>
@@ -153,7 +175,7 @@
     </div>
 
     <script>
-        const PROMPTPAY_ID = "0902368918"; 
+        const PROMPTPAY_ID = "0927899880"; 
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPX7-03fHsRh63WwTdLEU-RzSRUPwBpCCFVKVKDMBpiRbz-2H7L_ytpEZA17TADcWPBw/exec'; 
         
         let cartItems = [];
@@ -165,8 +187,7 @@
         let isSubmittingOrder = false;
         let lastKnownRawStatus = "";
 
-        function newSearchParams(search) { return new URLSearchParams(search); }
-        let tableNumber = newSearchParams(window.location.search).get('table');
+        let tableNumber = new URLSearchParams(window.location.search).get('table');
 
         document.addEventListener('DOMContentLoaded', () => {
             renderTableGrid();
@@ -179,7 +200,6 @@
             loadMenu();
         });
 
-        // 1. Table Map
         function renderTableGrid() {
             const container = document.getElementById('table-grid-container');
             container.innerHTML = '';
@@ -206,16 +226,13 @@
             const newUrl = window.location.pathname + '?table=' + tableNumber;
             window.history.pushState({path:newUrl},'',newUrl);
             
-            isFirstLoad = true; // รีเซ็ตการเช็คสถานะ
+            isFirstLoad = true; 
             startStatusCheck();
         }
 
-        // 2. Timeline Status Logic (🔥 Fixed Auto-Popup Bug 🔥)
         function minimizeStatusBar() {
             document.getElementById('order-status-bar').classList.remove('translate-y-0');
             document.getElementById('order-status-bar').classList.add('translate-y-full');
-            
-            // รอให้แอนิเมชันเลื่อนลงจบก่อน ค่อยซ่อน
             setTimeout(() => {
                 document.getElementById('order-status-bar').classList.add('hidden');
                 document.getElementById('status-minimized').classList.remove('hidden');
@@ -226,8 +243,6 @@
             document.getElementById('order-status-bar').classList.remove('hidden');
             document.getElementById('status-minimized').classList.add('hidden');
             isStatusClosed = false;
-            
-            // ให้บราวเซอร์วาดกล่องก่อน ค่อยสั่งเลื่อนขึ้น
             requestAnimationFrame(() => {
                 document.getElementById('order-status-bar').classList.remove('translate-y-full');
                 document.getElementById('order-status-bar').classList.add('translate-y-0');
@@ -238,7 +253,6 @@
             document.getElementById('order-status-bar').classList.remove('translate-y-0');
             document.getElementById('order-status-bar').classList.add('translate-y-full');
             isStatusClosed = true; 
-            
             setTimeout(() => {
                 document.getElementById('order-status-bar').classList.add('hidden');
                 document.getElementById('status-minimized').classList.add('hidden');
@@ -285,32 +299,25 @@
                 if(data.orders && data.orders.length > 0) {
                     serverOrderStatuses = data.orders;
                     const latest = data.orders[data.orders.length - 1];
-                    const currentStatusKey = latest.status + (latest.updateTime || latest.orderTime); // สร้าง key เช็คสถานะ
+                    const currentStatusKey = latest.status + (latest.updateTime || latest.orderTime);
 
-                    // วาด HTML ข้างในรอไว้ก่อนเสมอ
                     renderTimeline(latest.status, latest.estTime, latest.orderTime);
 
                     if (isFirstLoad) {
-                        // โหลดเว็บครั้งแรก
                         if (latest.status === 'completed') {
-                            // ถ้าออเดอร์เก่าเสร็จไปแล้ว -> ซ่อนไปเลย (เปิดเฉพาะปุ่มลอย)
                             document.getElementById('order-status-bar').classList.add('hidden', 'translate-y-full');
                             document.getElementById('status-minimized').classList.remove('hidden');
                         } else {
-                            // ถ้ากำลังรอกิน -> ให้เด้งขึ้นมา
                             if(!isStatusClosed) restoreStatusBar();
                         }
                         lastKnownRawStatus = currentStatusKey;
                     } else {
-                        // เช็คระหว่างการใช้งาน (ไม่ได้โหลดใหม่)
                         if (currentStatusKey !== lastKnownRawStatus) {
-                            // ถ้าสถานะมี การเปลี่ยนแปลง (เปลี่ยนคนละค่ากับที่จำไว้) -> เด้งขึ้นมาแจ้งลูกค้า!
                             if(!isStatusClosed) restoreStatusBar();
                             lastKnownRawStatus = currentStatusKey;
                         }
                     }
 
-                    // แจ้งเตือนกระดิ่ง/จุดแดง
                     const completed = data.orders.filter(o => o.status === 'completed').length;
                     const storedCompleted = parseInt(localStorage.getItem('completedCount') || 0);
                     
@@ -323,14 +330,16 @@
             } catch(e) {}
         }
 
-        // 3. Menu & Cart Logic
         async function loadMenu() {
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getMenu`); const menu = await res.json();
                 ['food', 'drink', 'dessert'].forEach(t => document.getElementById(t + '-list').innerHTML = '');
                 menu.forEach(item => {
                     const isActive = item.status; const hasStock = item.isUnlimited || item.stock > 0;
-                    let btn = !isActive ? '<span class="text-xs text-slate-300 border border-slate-200 px-3 py-1 rounded-lg">ปิดรับ</span>' : (!hasStock ? '<span class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded-lg font-bold">หมด</span>' : `<button onclick="addToCart('${item.name}', ${item.price}, '${item.imgUrl}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm active:scale-95">+ เพิ่ม</button>`);
+                    const safeName = item.name.replace(/'/g, "\\'"); 
+                    
+                    let btn = !isActive ? '<span class="text-xs text-slate-300 border border-slate-200 px-3 py-1 rounded-lg">ปิดรับ</span>' : (!hasStock ? '<span class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded-lg font-bold">หมด</span>' : `<button onclick="addToCart('${safeName}', ${item.price}, '${item.imgUrl}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm active:scale-95">+ เพิ่ม</button>`);
+                    
                     let html = `
                     <div class="bg-white p-3 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 flex gap-3 h-[100px]">
                         <img src="${item.imgUrl}" class="w-20 h-full rounded-xl object-cover bg-slate-50 ${(!isActive||!hasStock)?'grayscale opacity-50':''}" onerror="this.src='https://placehold.co/150?text=Image'">
@@ -367,8 +376,10 @@
             document.getElementById('cart-count').innerText = totalQty;
             document.getElementById('cart-total').innerText = totalAmount.toLocaleString();
             
+            // อัปเดตยอดรวมในหน้าต่างจ่ายเงินทั้งหมด
             document.getElementById('pay-total').innerText = totalAmount.toLocaleString();
             document.getElementById('modal-total').innerText = totalAmount.toLocaleString();
+            document.getElementById('method-total').innerText = totalAmount.toLocaleString();
         }
 
         function openCartModal() {
@@ -420,7 +431,6 @@
             } 
             if (cartItems.length === 0) closeCartModal(); 
             else openCartModal(); 
-            
             updateCartUI(); 
         }
 
@@ -435,57 +445,87 @@
         
         function closeCartModal() { document.getElementById('cart-modal').classList.add('hidden'); }
         
+        // 🔥 เปลี่ยนจากการไปหน้าสแกนเลย มาเป็นพาไปหน้าเลือกวิธีชำระเงินก่อน
         function goToPayment() { 
             if(cartItems.length === 0) return;
             closeCartModal(); 
-            document.getElementById('payment-modal').classList.remove('hidden'); 
-            const total = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
-            const qrUrl = `https://promptpay.io/${PROMPTPAY_ID}/${total}`;
-            document.getElementById('qr-image').src = qrUrl;
+            updateCartUI();
+            document.getElementById('payment-method-modal').classList.remove('hidden'); 
         }
         
-        function backToCart() { document.getElementById('payment-modal').classList.add('hidden'); document.getElementById('cart-modal').classList.remove('hidden'); }
+        // 🔥 ฟังก์ชันสำหรับจัดการหน้าต่างเลือกวิธีชำระเงิน
+        function backToCartFromMethod() {
+            document.getElementById('payment-method-modal').classList.add('hidden');
+            document.getElementById('cart-modal').classList.remove('hidden');
+        }
 
-        async function confirmOrder() {
+        function backToMethod() {
+            document.getElementById('payment-modal').classList.add('hidden');
+            document.getElementById('payment-method-modal').classList.remove('hidden');
+        }
+
+        // 🔥 ฟังก์ชันแยกการทำงานตามวิธีชำระเงิน
+        function selectPaymentMethod(method) {
+            const total = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
+            
+            if (method === 'promptpay') {
+                // ถ้าเลือกสแกนจ่าย ไปหน้าโชว์ QR เหมือนเดิม
+                document.getElementById('payment-method-modal').classList.add('hidden');
+                document.getElementById('payment-modal').classList.remove('hidden'); 
+                const qrUrl = `https://promptpay.io/${PROMPTPAY_ID}/${total}`;
+                document.getElementById('qr-image').src = qrUrl;
+            } else if (method === 'cash') {
+                // ถ้าเลือกเงินสด ทำการยิงออเดอร์ทันที
+                confirmOrderCash();
+            }
+        }
+
+        // 🔥 ฟังก์ชันยิงออเดอร์กรณี "จ่ายเงินสด" (ไม่บังคับสลิป)
+        async function confirmOrderCash() {
             if (isSubmittingOrder) return; 
             
-            const btn = document.getElementById('btn-submit-order'); 
-            const originalText = btn.innerText;
+            const btn = document.getElementById('btn-cash-order'); 
+            const originalText = btn.innerHTML;
             
             isSubmittingOrder = true; 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังส่งข้อมูล...'; 
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังส่งออเดอร์...'; 
             btn.disabled = true;
             btn.classList.add('opacity-70', 'cursor-not-allowed');
 
             try {
-                const file = document.getElementById('slip-input').files[0];
-                let base64 = ""; if(file) base64 = await toBase64(file);
-                
-                const menuString = cartItems.map(i => `${i.name} ${i.note ? '('+i.note+')' : ''} x${i.qty}`).join(", ");
+                // วงเล็บท้ายชื่อเมนูให้แอดมินรู้ว่าบิลนี้จ่ายสด
+                const menuString = cartItems.map(i => `${i.name} ${i.note ? '('+i.note+')' : ''} x${i.qty}`).join(", ") + " [ชำระเงินสด]";
                 const total = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
 
-                await fetch(SCRIPT_URL, {
+                const response = await fetch(SCRIPT_URL, {
                     method: 'POST', body: JSON.stringify({
-                        table: tableNumber, menuItems: menuString, totalPrice: total, slipImage: base64, cartData: cartItems
+                        table: tableNumber, 
+                        menuItems: menuString, 
+                        totalPrice: total, 
+                        slipImage: "", // ส่งค่าว่างไปให้หลังบ้าน
+                        paymentMethod: "cash", 
+                        cartData: cartItems
                     })
                 });
                 
-                orderHistory.push({ time: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}), total: total, items: [...cartItems] });
-                localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
-                
-                showToast("สั่งอาหารสำเร็จ! โปรดรอสักครู่", true); 
-                cartItems=[]; 
-                updateCartUI(); 
-                document.getElementById('payment-modal').classList.add('hidden');
-                document.getElementById('slip-input').value = ""; 
-                
-                isStatusClosed = false;
-                
-                // รีเฟรชสถานะทันที เพื่อให้แท็บสถานะใหม่เด้งขึ้นมา
-                setTimeout(checkStatus, 1000); 
+                const result = await response.json();
 
+                if (result.result === "error") {
+                    showToast(result.message, false);
+                } else if (result.result === "success") {
+                    orderHistory.push({ time: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}), total: total, items: [...cartItems] });
+                    localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
+                    
+                    showToast("สั่งอาหารสำเร็จ! กรุณาชำระเงินสดที่เคาน์เตอร์ 💵", true); 
+                    cartItems=[]; 
+                    updateCartUI(); 
+                    document.getElementById('payment-method-modal').classList.add('hidden');
+                    
+                    isStatusClosed = false;
+                    setTimeout(checkStatus, 1000); 
+                }
             } catch(e) { 
-                showToast("เกิดข้อผิดพลาด กรุณาลองใหม่", false); 
+                showToast("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่", false); 
             } finally { 
                 btn.innerHTML = originalText; 
                 btn.disabled = false; 
@@ -494,12 +534,76 @@
             }
         }
 
-        // Utils
+        // 🔥 ฟังก์ชันยิงออเดอร์กรณี "สแกนจ่าย" (บังคับสลิป)
+        async function confirmOrder() {
+            if (isSubmittingOrder) return; 
+            
+            const fileInput = document.getElementById('slip-input');
+            const total = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
+            
+            if (total > 0 && fileInput.files.length === 0) {
+                showToast("กรุณาแนบรูปสลิปเพื่อยืนยันการชำระเงิน", false);
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-order'); 
+            const originalText = btn.innerText;
+            
+            isSubmittingOrder = true; 
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังตรวจสลิป...'; 
+            btn.disabled = true;
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                let base64 = ""; 
+                if(fileInput.files.length > 0) base64 = await toBase64(fileInput.files[0]);
+                
+                const menuString = cartItems.map(i => `${i.name} ${i.note ? '('+i.note+')' : ''} x${i.qty}`).join(", ");
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST', body: JSON.stringify({
+                        table: tableNumber, 
+                        menuItems: menuString, 
+                        totalPrice: total, 
+                        slipImage: base64, 
+                        paymentMethod: "promptpay",
+                        cartData: cartItems
+                    })
+                });
+                
+                const result = await response.json();
+
+                if (result.result === "error") {
+                    showToast(result.message, false);
+                } else if (result.result === "success") {
+                    orderHistory.push({ time: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}), total: total, items: [...cartItems] });
+                    localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
+                    
+                    showToast("สั่งอาหารและตรวจสลิปสำเร็จ! 🎉", true); 
+                    cartItems=[]; 
+                    updateCartUI(); 
+                    document.getElementById('payment-modal').classList.add('hidden');
+                    document.getElementById('slip-input').value = ""; 
+                    
+                    isStatusClosed = false;
+                    setTimeout(checkStatus, 1000); 
+                }
+
+            } catch(e) { 
+                showToast("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่", false); 
+            } finally { 
+                btn.innerHTML = originalText; 
+                btn.disabled = false; 
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                isSubmittingOrder = false; 
+            }
+        }
+
         function showToast(m, s) { 
             const t = document.getElementById('toast'); 
             t.className = `fixed top-5 left-1/2 -translate-x-1/2 z-[150] px-6 py-3 rounded-2xl shadow-xl text-white font-bold transition-all duration-300 w-max max-w-[90%] text-center ${s?'bg-emerald-500':'bg-red-500'}`;
             document.getElementById('toast-msg').innerText = m; t.classList.remove('hidden');
-            setTimeout(()=>t.classList.add('hidden'), 3000);
+            setTimeout(()=>t.classList.add('hidden'), 4000); 
         }
         
         function filterMenu(t) {
@@ -536,4 +640,3 @@
     </script>
 </body>
 </html>
-
